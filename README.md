@@ -67,7 +67,7 @@ default:
                 username: root
                 password: root
                 schema: myschema
-                dbprefix: dev_
+                prefix: dev_
             dataModMapping: # Optional
                 "*": \QuickPack\DataMod\ # Configure path for all data mods using *.
                 "User": \QuickPack\DataMod\User\User # Configure single data mod.

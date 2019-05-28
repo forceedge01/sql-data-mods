@@ -44,7 +44,7 @@ Installation
 -------------
 
 ```
-composer require --dev genesis/sql-api-wrapper
+composer require --dev genesis/sql-data-mods
 ```
 
 Sample configurating in the behat.yml file:

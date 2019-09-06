@@ -7,7 +7,7 @@ Release details:
 ----------------
 Major: Initialize context through initializer using the extensions channel.
 
-Minor: Post create hook introduced. Allow extra data to be supplied for auxiliary records.
+Minor: Step definition to create multiple fixtures without data and retrieve existing data.
 
 Patch: NA.
 

@@ -26,10 +26,10 @@ class DataModSQLContext implements Context
     private static $userUniqueRef;
 
     /**
-     * @param array $dataModMapping
+     * @param array   $dataModMapping
      * @param boolean $debug
-     * @param string $userUniqueRef Will be appended to new data created to separate data based on users.
-     * Best to limit it to 2 characters.
+     * @param string  $userUniqueRef  Will be appended to new data created to separate data based on users.
+     *                                Best to limit it to 2 characters.
      */
     public function __construct($debug = false, $userUniqueRef = null)
     {
@@ -46,7 +46,7 @@ class DataModSQLContext implements Context
      *
      * Note: The first row value in the TableNode is considered the unique key.
      *
-     * @param string $dataModRef
+     * @param string    $dataModRef
      * @param TableNode $where
      */
     public function givenIACreateFixture($dataModRef, TableNode $where = null)
@@ -72,11 +72,43 @@ class DataModSQLContext implements Context
     }
 
     /**
+     * @Given I have an existing :dataModRef fixture with the following data set:
+     *
+     * @param string         $dataModRef
+     * @param TableNode|null $where
+     *
+     * @return string
+     */
+    public function givenIHaveAnExistingFixture(string $dataModRef, TableNode $where)
+    {
+        $dataMod = $this->getDataMod($dataModRef);
+        $dataSet = DataRetriever::transformTableNodeToSingleDataSet($where);
+        $dataMod::select($dataSet);
+    }
+
+    /**
+     * @Given I have :count :dataModRef fixtures
+     * @Given I have :count :dataModRef fixtures with the following data set:
+     *
+     * @param int            $count
+     * @param string         $dataModRef
+     * @param TableNode|null $where
+     *
+     * @return void
+     */
+    public function givenIHaveXFixtures(int $count, string $dataModRef, TableNode $where = null)
+    {
+        for ($i = 0; $i < $count; $i++) {
+            $this->givenIACreateFixture($dataModRef, $where);
+        }
+    }
+
+    /**
      * @Given I have multiple :dataModRef fixtures with the following data set(s):
      *
      * Note: The first column value in the TableNode is considered the unique key.
      *
-     * @param string $dataModRef
+     * @param string    $dataModRef
      * @param TableNode $where
      */
     public function givenIMultipleCreateFixtures($dataModRef, TableNode $where)
@@ -96,11 +128,14 @@ class DataModSQLContext implements Context
                 $uniqueKey
             );
         }
+
+        BaseProvider::getApi()->setKeyword(strtolower($dataModRef) . '_set', $dataSets);
     }
 
     /**
      * @Given I do not have a/any :dataModRef fixture(s)
      * @Given I do not have a/any :dataModRef fixture(s) with the following data set:
+     * @param mixed $dataModRef
      */
     public function iDoNotHaveAFixtureWithTheFollowingDataSet($dataModRef, TableNode $where = null)
     {
@@ -118,6 +153,7 @@ class DataModSQLContext implements Context
      *
      * @Then I should have a :dataModRef
      * @Then I should have a :dataModRef with the following data set:
+     * @param mixed $dataModRef
      */
     public function iShouldHaveAWithTheFollowingDataSet($dataModRef, TableNode $where = null)
     {
@@ -135,6 +171,7 @@ class DataModSQLContext implements Context
      *
      * @Then I should not have a :dataModRef
      * @Then I should not have a :dataModRef with the following data set:
+     * @param mixed $dataModRef
      */
     public function iShouldNotHaveAWithTheFollowingDataSet($dataModRef, TableNode $where = null)
     {
@@ -149,6 +186,7 @@ class DataModSQLContext implements Context
 
     /**
      * @Given I save the id as :key
+     * @param mixed $key
      */
     public function iSaveTheIdAs($key)
     {

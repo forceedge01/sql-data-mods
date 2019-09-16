@@ -26,7 +26,7 @@ abstract class BaseProvider implements APIDecoratorInterface
     private static $bridge;
 
     /**
-     * @var Context\Api
+     * @var Interfaces\APIInterface[]
      */
     private static $sqlApis;
 
@@ -43,7 +43,7 @@ abstract class BaseProvider implements APIDecoratorInterface
     /**
      * @param array $credentials
      */
-    private static function instantiateApi(array $credentials): Interfaces\APIInterface
+    private static function instantiateApi(array $credentials)
     {
         return new Context\API(
             new Context\DBManager(new Context\DatabaseProviders\Factory(), $credentials),
@@ -55,7 +55,7 @@ abstract class BaseProvider implements APIDecoratorInterface
     /**
      * @return string
      */
-    public static function getConnectionName(): string
+    public static function getConnectionName()
     {
         return '';
     }
@@ -66,7 +66,7 @@ abstract class BaseProvider implements APIDecoratorInterface
      * Override if you want to use a different version of the API.
      *
      * @return Context\Api
-     * @param  mixed       $connection
+     * @param  Interfaces\APIInterface $connection
      */
     public static function getApi($connection = '')
     {

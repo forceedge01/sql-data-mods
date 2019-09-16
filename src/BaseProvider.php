@@ -5,6 +5,7 @@ namespace Genesis\SQLExtensionWrapper;
 use Exception;
 use Genesis\SQLExtensionWrapper\Exception\RequiredDataException;
 use Genesis\SQLExtension\Context;
+use Genesis\SQLExtension\Context\Interfaces;
 
 /**
 * This class serves as a Decorator for the Genesis API class.
@@ -35,14 +36,14 @@ abstract class BaseProvider implements APIDecoratorInterface
     public static function setCredentials(array $connections)
     {
         foreach ($connections as $connection => $credentials) {
-            self::$sqlApis[$connection] = self::setApi($credentials);
+            self::$sqlApis[$connection] = self::instantiateApi($credentials);
         }
     }
 
     /**
      * @param array $credentials
      */
-    private static function setApi(array $credentials)
+    private static function instantiateApi(array $credentials): Interfaces\APIInterface
     {
         return new Context\API(
             new Context\DBManager(new Context\DatabaseProviders\Factory(), $credentials),

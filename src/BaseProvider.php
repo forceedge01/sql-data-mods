@@ -53,6 +53,9 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
+     * @overridable - If you've defined multiple connections, you can specify which connection to use for each of your
+     * data mods.
+     *
      * @return string
      */
     public static function getConnectionName()

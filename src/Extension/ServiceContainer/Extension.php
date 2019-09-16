@@ -62,31 +62,30 @@ class Extension implements ExtensionInterface
         $builder
             ->children()
                 ->arrayNode('connection')
-                    ->isRequired()
+                    ->setDeprecated('Use "connections" configuration instead.')
                     ->children()
-                        ->scalarNode('host')
-                            ->defaultNull()
-                        ->end()
-                        ->scalarNode('engine')
-                            ->isRequired()
-                        ->end()
-                        ->scalarNode('dbname')
-                            ->defaultNull()
-                        ->end()
-                        ->scalarNode('port')
-                            ->defaultNull()
-                        ->end()
-                        ->scalarNode('username')
-                            ->defaultNull()
-                        ->end()
-                        ->scalarNode('password')
-                            ->defaultNull()
-                        ->end()
-                        ->scalarNode('schema')
-                            ->defaultNull()
-                        ->end()
-                        ->scalarNode('prefix')
-                            ->defaultNull()
+                        ->scalarNode('host')->defaultNull()->end()
+                        ->scalarNode('engine')->isRequired()->end()
+                        ->scalarNode('dbname')->defaultNull()->end()
+                        ->scalarNode('port')->defaultNull()->end()
+                        ->scalarNode('username')->defaultNull()->end()
+                        ->scalarNode('password')->defaultNull()->end()
+                        ->scalarNode('schema')->defaultNull()->end()
+                        ->scalarNode('prefix')->defaultNull()->end()
+                    ->end()
+                ->end()
+                ->arrayNode('connections')
+                    ->useAttributeAsKey('name')
+                    ->arrayPrototype()
+                        ->children()
+                            ->scalarNode('host')->defaultNull()->end()
+                            ->scalarNode('engine')->isRequired()->end()
+                            ->scalarNode('dbname')->defaultNull()->end()
+                            ->scalarNode('port')->defaultNull()->end()
+                            ->scalarNode('username')->defaultNull()->end()
+                            ->scalarNode('password')->defaultNull()->end()
+                            ->scalarNode('schema')->defaultNull()->end()
+                            ->scalarNode('prefix')->defaultNull()->end()
                         ->end()
                     ->end()
                 ->end()
@@ -105,10 +104,21 @@ class Extension implements ExtensionInterface
      */
     public function load(ContainerBuilder $container, array $config)
     {
-        if (! isset($config['connection'])) {
-            $config['connection'] = [];
+        if (!empty($config['connection']) && !empty($config['connections'])) {
+            throw new \Exception(
+                'Both connection and connections configuration for sql data mods cannot be defined.'
+            );
         }
-        $container->setParameter('genesis.sqlapiwrapper.config.connection', $config['connection']);
+
+        // Merge into connections configuration.
+        if (!empty($config['connection'])) {
+            $config['connections'][0] = $config['connection'];
+        }
+
+        if (empty($config['connections'])) {
+            $config['connections'] = [];
+        }
+        $container->setParameter('genesis.sqlapiwrapper.config.connections', $config['connections']);
 
         if (! isset($config['dataModMapping'])) {
             $config['dataModMapping'] = [];
@@ -116,7 +126,7 @@ class Extension implements ExtensionInterface
         $container->setParameter('genesis.sqlapiwrapper.config.datamodmapping', $config['dataModMapping']);
 
         $definition = new Definition(Initializer::class, [
-            '%genesis.sqlapiwrapper.config.connection%',
+            '%genesis.sqlapiwrapper.config.connections%',
             '%genesis.sqlapiwrapper.config.datamodmapping%',
         ]);
         $definition->addTag(ContextExtension::INITIALIZER_TAG);

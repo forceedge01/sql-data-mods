@@ -16,7 +16,7 @@ class TestClass extends BaseProvider
     public static $api;
     public static $table = 'test.table';
 
-    public static function getAPI()
+    public static function getAPI($connection = '')
     {
         return self::$api;
     }
@@ -56,7 +56,7 @@ class TestClassNoSeedSetup extends BaseProvider
 {
     public static $api;
 
-    public static function getAPI()
+    public static function getAPI($connection = '')
     {
         return $api;
     }
@@ -104,25 +104,27 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
      */
     public function testSetCredentails()
     {
-        $result = $this->getPrivatePropertyValue('sqlApi');
+        $result = $this->getPrivatePropertyValue('sqlApis');
 
         self::assertNull($result);
 
         // Prepare / Mock
         $credentials = [
+            [
             'engine' => 'dblib',
             'name' => 'testname',
             'username' => 'testusername',
             'password' => 'testpassword',
             'port' => 'testport'
+            ]
         ];
-    
+
         // Execute
         TestClass::setCredentials($credentials);
 
-        $result = $this->getPrivatePropertyValue('sqlApi');
+        $result = $this->getPrivatePropertyValue('sqlApis');
 
-        self::assertInstanceOf(APIInterface::class, $result);
+        self::assertInstanceOf(APIInterface::class, current($result));
     }
 
     /**
@@ -131,13 +133,15 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
     public function testGetApi()
     {
         // Prepare / Mock
-        $this->setPrivatePropertyValue('sqlApi', 'banana');
-    
-        // Execute
-        $result = BaseProvider::getApi();
-    
+        $this->setPrivatePropertyValue('sqlApis', [
+            'mysql' => ['engine' => 'mysql'],
+            'mssql' => ['engine' => 'mssql']
+        ]);
+
         // Assert Result
-        self::assertEquals('banana', $result);
+        self::assertEquals(['engine' => 'mysql'], BaseProvider::getApi());
+        self::assertEquals(['engine' => 'mysql'], BaseProvider::getApi('mysql'));
+        self::assertEquals(['engine' => 'mssql'], BaseProvider::getApi('mssql'));
     }
 
     /**
@@ -623,7 +627,7 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
                 'forename' => 'Jackie',
                 'id' => 20
             ]);
-    
+
         // Execute
         TestClass::assertExists($where);
     }
@@ -642,7 +646,7 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
                 'forename' => 'Jackie',
                 'id' => 20
             ]);
-    
+
         // Execute
         TestClass::assertNotExists($where);
     }
@@ -868,7 +872,7 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
 
     /**
      * @param string $method The method to invoke.
-     * @param array $args The arguments to pass to the method.
+     * @param array  $args   The arguments to pass to the method.
      *
      * @return string
      */

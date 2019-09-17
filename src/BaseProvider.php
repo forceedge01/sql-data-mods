@@ -54,7 +54,7 @@ abstract class BaseProvider implements APIDecoratorInterface
     /**
      * @return string
      */
-    public static function getConnectionName(): string
+    public static function getConnectionName()
     {
         return '';
     }

@@ -31,11 +31,16 @@ Given I have a "User" fixture with the following data set:
 
 # Insert multiple entries for a datamod.
 Given I have multiple "User" fixtures with the following data sets:
-| name           | email                      |
-| Wahab Qureshi  | its.inevitable@hotmail.com |
-| Sabhat Qureshi | next-gen-coder@hotmail.com |
-| Jawad Qureshi  | to-be-coder@hotmail.com    |
+| name           | email                       |
+| Wahab Qureshi  | its.inevitable@hotmail.com  |
+| Sabhat Qureshi | next-gen-coder@hotmail.com  |
+| Jawad Qureshi  | to-be-coder@hotmail.com     |
+| Another name   | [Users.Email\|Name:Another] |
 ```
+
+The last value in the list above uses an external reference to fetch the value to be inserted. You can find out more about this by
+reading the 'Referencing foreign table values' topic in the behat-sql-extension extension. We do need to escape the pipe character
+in this call so it doesn't result in a syntax error when using table nodes.
 
 The createFixture call will attempt to delete the existing record before it creates another one so you always end up
 with a fresh copy. As easy as it sounds, foreign key constraints may not let that happen. In cases like these you can

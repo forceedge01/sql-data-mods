@@ -5,14 +5,15 @@ the web interface. This extension provides a framework where you will configure 
 
 Release details:
 ----------------
-Major: Initialize context through initializer using the extensions channel.
+Major: Allow multiple data sources to be defined.
 
-Minor: Step definition to create multiple fixtures without data and retrieve existing data.
+Minor: NA.
 
 Patch: NA.
 
 Tools provided by this package:
 --------------------------------
+- Define more than one data source i.e mssql, mysql etc.
 - DataModSQLContext - Use your data mods directly with step defintions provided by this class. Just register with the behat.yml
 file and you are good to go.
 - Decorated API BaseProvider Class - for advanced and easy integration with data modules.
@@ -30,11 +31,16 @@ Given I have a "User" fixture with the following data set:
 
 # Insert multiple entries for a datamod.
 Given I have multiple "User" fixtures with the following data sets:
-| name           | email                      |
-| Wahab Qureshi  | its.inevitable@hotmail.com |
-| Sabhat Qureshi | next-gen-coder@hotmail.com |
-| Jawad Qureshi  | to-be-coder@hotmail.com    |
+| name           | email                       |
+| Wahab Qureshi  | its.inevitable@hotmail.com  |
+| Sabhat Qureshi | next-gen-coder@hotmail.com  |
+| Jawad Qureshi  | to-be-coder@hotmail.com     |
+| Another name   | [Users.Email\|Name:Another] |
 ```
+
+The last value in the list above uses an external reference to fetch the value to be inserted. You can find out more about this by
+reading the 'Referencing foreign table values' topic in the behat-sql-extension extension. We do need to escape the pipe character
+in this call so it doesn't result in a syntax error when using table nodes.
 
 The createFixture call will attempt to delete the existing record before it creates another one so you always end up
 with a fresh copy. As easy as it sounds, foreign key constraints may not let that happen. In cases like these you can
@@ -59,15 +65,25 @@ default:
                     userUniqueRef: aq # Optional
     extensions:
         Genesis\SQLExtensionWrapper\Extension:
-            connection:
-                engine: mysql # mssql, pgsql, sqlite
-                host: localhost
-                port: 1234
-                dbname: mydb
-                username: root
-                password: root
-                schema: myschema
-                prefix: dev_
+            connections:
+                mysql:
+                    engine: mysql # mssql, pgsql, sqlite
+                    host: localhost
+                    port: 3306
+                    dbname: mydb_mysql
+                    username: root
+                    password: root
+                    schema: myschema
+                    prefix: dev_
+                mssql:
+                    engine: mssql # mssql, pgsql, sqlite
+                    host: localhost
+                    port: 1433
+                    dbname: mydb_mssql
+                    username: root
+                    password: root
+                    schema: myschema
+                    prefix: dev_
             dataModMapping: # Optional
                 "*": \QuickPack\DataMod\ # Configure path for all data mods using *.
                 "User": \QuickPack\DataMod\User\User # Configure single data mod.
@@ -97,14 +113,16 @@ class FeatureContext
     public static function loadDataModSQLContext(BeforeSuiteScope $scope)
     {
         BaseProvider::setCredentials([
-            'engine' => 'dblib',
-            'name' => 'databaseName',
-            'schema' => 'dbo',
-            'prefix' => 'dev_',
-            'host' => 'myhost',
-            'port' => '1433',
-            'username' => 'myUsername',
-            'password' => 'myPassword'
+            'mssql' => [
+                'engine' => 'dblib',
+                'name' => 'databaseName',
+                'schema' => 'dbo',
+                'prefix' => 'dev_',
+                'host' => 'myhost',
+                'port' => '1433',
+                'username' => 'myUsername',
+                'password' => 'myPassword'
+            ]
         ]);
 
         // Default path is \\DataMod\\ which points to features/DataMod/, override this way.
@@ -302,6 +320,17 @@ use Genesis\SQLExtensionWrapper\BaseProvider;
 class User extends BaseProvider
 {
     ...
+
+    /**
+     * If you've defined multiple connections, you can specify which connection to use for each of your
+     * data mods.
+     *
+     * @return string
+     */
+    public static function getConnectionName()
+    {
+        return 'mssql';
+    }
 
     /**
      * Special Method: Use this method to create auxiliary data off the initial create. This is suitable

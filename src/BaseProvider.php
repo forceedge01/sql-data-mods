@@ -5,6 +5,7 @@ namespace Genesis\SQLExtensionWrapper;
 use Exception;
 use Genesis\SQLExtensionWrapper\Exception\RequiredDataException;
 use Genesis\SQLExtension\Context;
+use Genesis\SQLExtension\Context\Interfaces;
 
 /**
 * This class serves as a Decorator for the Genesis API class.
@@ -25,7 +26,7 @@ abstract class BaseProvider implements APIDecoratorInterface
     private static $bridge;
 
     /**
-     * @var Context\Api
+     * @var Interfaces\APIInterface[]
      */
     private static $sqlApis;
 
@@ -35,14 +36,14 @@ abstract class BaseProvider implements APIDecoratorInterface
     public static function setCredentials(array $connections)
     {
         foreach ($connections as $connection => $credentials) {
-            self::$sqlApis[$connection] = self::setApi($credentials);
+            self::$sqlApis[$connection] = self::instantiateApi($credentials);
         }
     }
 
     /**
      * @param array $credentials
      */
-    private static function setApi(array $credentials)
+    private static function instantiateApi(array $credentials)
     {
         return new Context\API(
             new Context\DBManager(new Context\DatabaseProviders\Factory(), $credentials),
@@ -52,6 +53,9 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
+     * @overridable - If you've defined multiple connections, you can specify which connection to use for each of your
+     * data mods.
+     *
      * @return string
      */
     public static function getConnectionName()
@@ -65,7 +69,7 @@ abstract class BaseProvider implements APIDecoratorInterface
      * Override if you want to use a different version of the API.
      *
      * @return Context\Api
-     * @param  mixed       $connection
+     * @param  Interfaces\APIInterface $connection
      */
     public static function getApi($connection = '')
     {

@@ -372,6 +372,18 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
+     * Shortcut method for getKeyword.
+     *
+     * @param string $key
+     *
+     * @return string
+     */
+    public static function key($key)
+    {
+        return self::getKeyword($key);
+    }
+
+    /**
      * @param array $indexes
      * @param array $data
      *

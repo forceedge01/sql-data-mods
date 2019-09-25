@@ -133,9 +133,10 @@ class FeatureContext
         DataModSQLContext::setDataModMapping([
             '*' => '\\Custom\\DataMod\\'
         ]);
-    DataModSQLContext::setDomainModMapping([
-        '*' => '\\Custom\\DomainMod\\'
-    ]);
+
+        DataModSQLContext::setDomainModMapping([
+            '*' => '\\Custom\\DomainMod\\'
+        ]);
 
         $scope->getEnvironment()->registerContextClass(
             DataModSQLContext::class,

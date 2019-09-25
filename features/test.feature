@@ -21,3 +21,18 @@ Feature:
         And I should see the users age on the page
         And I should see text matching "address: behat-[0-9]+-test-string"
         And I take a screenshot
+
+    Scenario: Use DomainMod
+        Given I am on "/"
+        And I have a "User" domain fixture with the following data set:
+            | name          | Wahab Qureshi |
+            | date of birth | 10-05-1989    |
+            | age           | 29            |
+            | hobby         | swimming      |
+
+        When I reload the page
+        Then I should see "name: Wahab Qureshi"
+        And I should see "dob: 10-05-1989"
+        And I should see the users age on the page
+        And I should see text matching "address: behat-[0-9]+-test-string"
+        And I take a screenshot

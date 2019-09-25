@@ -18,6 +18,8 @@ default:
         dbname: app/db/database.db
       dataModMapping: # Optional
         "*": \DataMod\ # Configure path for all data mods using *.
+      domainModMapping: # Optional
+        "*": \DomainMod\ # Configure path for all data mods using *.
     Behat\MinkExtension:
       base_url: 'http://localhost:8000'
       sessions:

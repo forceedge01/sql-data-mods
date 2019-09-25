@@ -75,10 +75,14 @@ class DataModSQLContext implements Context
             $modData = array_intersect_key($data, $mapping);
             list($uniqueKey, $dataSet) = $this->getUniqueKeyFromDataset($modData);
 
-            $dataMod::createFixture(
-                $dataSet,
-                $uniqueKey
-            );
+            try {
+                $dataMod::createFixture(
+                    $dataSet,
+                    $uniqueKey
+                );
+            } catch (\Exception $e) {
+                throw new Exception\DomainModException($domainModRef, $e->getMessage());
+            }
         }
     }
 

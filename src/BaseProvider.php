@@ -3,6 +3,9 @@
 namespace Genesis\SQLExtensionWrapper;
 
 use Exception;
+use Genesis\SQLExtensionWrapper\Contract\APIDecoratorInterface;
+use Genesis\SQLExtensionWrapper\Contract\BridgeInterface;
+use Genesis\SQLExtensionWrapper\Contract\BridgedDataModInterface;
 use Genesis\SQLExtensionWrapper\Exception\RequiredDataException;
 use Genesis\SQLExtension\Context;
 use Genesis\SQLExtension\Context\Interfaces;

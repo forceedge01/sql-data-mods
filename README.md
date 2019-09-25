@@ -409,8 +409,9 @@ To facilitate such a scenario, we've got domain mods.
 namespace App\Tests\Behaviour\DomainMod;
 
 use App\Tests\Behaviour\DataMod;
+use Genesis\SQLExtensionWrapper\Contract\DomainModInterface;
 
-class User
+class User implements DomainModInterface
 {
     public static function getDataMods()
     {
@@ -542,7 +543,7 @@ Data conversion built in for most common data types:
 Using a Bridge
 --------------
 
-You can also set a bridge between your framework data modules and the wrapper. Your bridge must implement the Genesis\SQLExtensionWrapper\BridgeInterface to work. You can register your bridge like so:
+You can also set a bridge between your framework data modules and the wrapper. Your bridge must implement the Genesis\SQLExtensionWrapper\Contract\BridgeInterface to work. You can register your bridge like so:
 
 ```php
 class FeatureContext

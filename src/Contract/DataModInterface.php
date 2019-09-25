@@ -1,6 +1,6 @@
 <?php
 
-namespace Genesis\SQLExtensionWrapper;
+namespace Genesis\SQLExtensionWrapper\Contract;
 
 /**
  * Genesis Data Mod interface.

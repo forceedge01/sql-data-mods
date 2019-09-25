@@ -5,6 +5,7 @@ namespace Genesis\SQLExtensionWrapper;
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\TableNode;
 use Genesis\SQLExtensionWrapper\Exception\DataModNotFoundException;
+use Genesis\SQLExtensionWrapper\Exception\DomainModNotFoundException;
 use Genesis\SQLExtension\Context\Debugger;
 
 /**
@@ -300,12 +301,17 @@ class DataModSQLContext implements Context
         return $dataMod;
     }
 
+    /**
+     * @param string $domainModRef
+     *
+     * @return string
+     */
     private function getDomainMod($domainModRef)
     {
         $domainMod = $this->resolveDomainMod($domainModRef);
 
         if (! class_exists($domainMod)) {
-            throw new DataModNotFoundException($domainMod, self::$domainModMapping);
+            throw new DomainModNotFoundException($domainMod, self::$domainModMapping);
         }
 
         return $domainMod;

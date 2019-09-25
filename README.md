@@ -7,7 +7,7 @@ Release details:
 ----------------
 Major: Allow multiple data sources to be defined.
 
-Minor: NA.
+Minor: Domain mods - combine your fragmented data mods into one domain module.
 
 Patch: NA.
 
@@ -87,12 +87,16 @@ default:
             dataModMapping: # Optional
                 "*": \QuickPack\DataMod\ # Configure path for all data mods using *.
                 "User": \QuickPack\DataMod\User\User # Configure single data mod.
+	    domainModMapping: # Optional
+		"*": \QuickPack\DomainMod\
+		"User": \QuickPack\DomainMod\User\User
 ```
 
 debug - Turns debugging on off.
 userUniqueRef: Appends the string onto first column of data provided to the fixture step definitions if its a string. This is so every user has its own unique data if multiple users are targeting a single database.
 connectionDetails: Your database connection details.
-dataModMapping: Point where your dataMods are via the namespace. (Optional)
+dataModMapping: The autoloading namespace reference to your dataMods. (Optional)
+domainModMapping: The autoloading namespace reference of your domainMods. (Optional)
 
 Please note: The extension expects you to have your dataMods located in the `features/bootstrap/DataMod` folder. If you have a different mapping to this, you will have to define your autoload
 strategy in the composer.json file or manually require the files in. You can set the mapping in php like so:
@@ -129,6 +133,9 @@ class FeatureContext
         DataModSQLContext::setDataModMapping([
             '*' => '\\Custom\\DataMod\\'
         ]);
+	DataModSQLContext::setDomainModMapping([
+	    '*' => '\\Custom\\DomainMod\\'
+	]);
 
         $scope->getEnvironment()->registerContextClass(
             DataModSQLContext::class,
@@ -388,6 +395,41 @@ class User extends BaseProvider
 The getDefaults() method is special, it will be called automatically if it exists. It allows you to set default values
 for any column. An example could be a boolean flag of some sort that you don't want to keep defining or want to override 
 optionally. Another example could be setting foreign keys correctly.
+
+Combining Data mods (Domain Mod)
+--------------------------------
+
+Sometimes our data is fragmented between several tables, but we don't want that fragmentation to bleed into our test files.
+To facilitate such a scenario, we've got domain mods.
+
+```php
+<?php
+
+namespace App\Tests\Behaviour\DomainMod;
+
+use App\Tests\Behaviour\DataMod;
+
+class User
+{
+    public static function getDataMods()
+    {
+        return [
+            DataMod\User::class,
+            DataMod\UserExt::class,
+        ];
+    }
+}
+
+```
+
+The step definitions to support this feature are:
+
+```yml
+Scenario: ...
+    Given I have a "Ship" domain fixture
+    Given I have a "Ship" domain fixture with the following data set:
+    | name | ABC |
+```
 
 Build dynamic URLs
 -------------------

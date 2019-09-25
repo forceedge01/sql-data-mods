@@ -92,6 +92,9 @@ class Extension implements ExtensionInterface
                 ->arrayNode('dataModMapping')
                     ->ignoreExtraKeys(false)
                 ->end()
+                ->arrayNode('domainModMapping')
+                    ->ignoreExtraKeys(false)
+                ->end()
             ->end()
         ->end();
     }
@@ -125,9 +128,15 @@ class Extension implements ExtensionInterface
         }
         $container->setParameter('genesis.sqlapiwrapper.config.datamodmapping', $config['dataModMapping']);
 
+        if (! isset($config['domainModMapping'])) {
+            $config['domainModMapping'] = [];
+        }
+        $container->setParameter('genesis.sqlapiwrapper.config.domainmodmapping', $config['domainModMapping']);
+
         $definition = new Definition(Initializer::class, [
             '%genesis.sqlapiwrapper.config.connections%',
             '%genesis.sqlapiwrapper.config.datamodmapping%',
+            '%genesis.sqlapiwrapper.config.domainmodmapping%',
         ]);
         $definition->addTag(ContextExtension::INITIALIZER_TAG);
         $container->setDefinition(self::CONTEXT_INITIALISER, $definition);

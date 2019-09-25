@@ -23,15 +23,23 @@ class Initializer implements ContextInitializer
     private $dataModMapping = [];
 
     /**
+     * @var array
+     */
+    private $domainModMapping = [];
+
+    /**
      * @param array $connection
      * @param array $dataModMapping
+     * @param array $domainModMapping
      */
     public function __construct(
         array $connections = [],
-        array $dataModMapping = []
+        array $dataModMapping = [],
+        array $domainModMapping = []
     ) {
         $this->connections = $connections;
         $this->dataModMapping = $dataModMapping;
+        $this->domainModMapping = $domainModMapping;
     }
 
     /**
@@ -43,6 +51,7 @@ class Initializer implements ContextInitializer
             BaseProvider::setCredentials($this->connections);
 
             $context::setDataModMapping($this->dataModMapping);
+            $context::setDomainModMapping($this->domainModMapping);
         }
     }
 }

@@ -14,11 +14,17 @@ use Genesis\SQLExtension\Context\Debugger;
 class DataModSQLContext implements Context
 {
     const DEFAULT_NAMESPACE = '\\DataMod\\';
+    const DEFAULT_DOMAIN_NAMESPACE = '\\DomainMod\\';
 
     /**
      * @var array
      */
     private static $dataModMapping = [];
+
+    /**
+     * @var array
+     */
+    private static $domainModMapping = [];
 
     /**
      * @var string
@@ -41,6 +47,42 @@ class DataModSQLContext implements Context
     }
 
     /**
+     * @Given I have a :domainModRef domain fixture with the following data set:
+     * @Given I have a :domainModRef domain fixture
+     *
+     * @param string         $dataModRef
+     * @param TableNode|null $where
+     * @param mixed          $domainModRef
+     *
+     * @return string
+     */
+    public function givenIADomainFixture($domainModRef, TableNode $where = null)
+    {
+        $domainMod = $this->getDomainMod($domainModRef);
+        $dataMods = $domainMod::getDataMods();
+
+        $data = [];
+        if ($where) {
+            $data = DataRetriever::transformTableNodeToSingleDataSet($where);
+        }
+
+        foreach ($dataMods as $dataMod) {
+            if (!class_exists($dataMod)) {
+                throw new \Exception("DataMod '$dataMod' for DomainMod '$domainModRef' not found.");
+            }
+
+            $mapping = $dataMod::getDataMapping();
+            $modData = array_intersect_key($data, $mapping);
+            list($uniqueKey, $dataSet) = $this->getUniqueKeyFromDataset($modData);
+
+            $dataMod::createFixture(
+                $dataSet,
+                $uniqueKey
+            );
+        }
+    }
+
+    /**
      * @Given I have a/an :dataModRef fixture
      * @Given I have a/an :dataModRef fixture with the following data set:
      *
@@ -54,10 +96,28 @@ class DataModSQLContext implements Context
         $dataMod = $this->getDataMod($dataModRef);
 
         // You don't need to necessarily have a where clause to create a fixture.
+        if ($where) {
+            $where = DataRetriever::transformTableNodeToSingleDataSet($where);
+        }
+        list($uniqueKey, $dataSet) = $this->getUniqueKeyFromDataset($where);
+
+        $dataMod::createFixture(
+            $dataSet,
+            $uniqueKey
+        );
+    }
+
+    /**
+     * @param array|null $data
+     *
+     * @return string
+     */
+    private function getUniqueKeyFromDataset(array $data = null)
+    {
         $uniqueKey = null;
         $dataSet = array();
-        if ($where) {
-            $dataSet = DataRetriever::transformTableNodeToSingleDataSet($where);
+        if ($data) {
+            $dataSet = $data;
             $uniqueKey = key($dataSet);
 
             if (! is_numeric($dataSet[$uniqueKey])) {
@@ -65,10 +125,7 @@ class DataModSQLContext implements Context
             }
         }
 
-        $dataMod::createFixture(
-            $dataSet,
-            $uniqueKey
-        );
+        return [$uniqueKey, $dataSet];
     }
 
     /**
@@ -216,6 +273,14 @@ class DataModSQLContext implements Context
     }
 
     /**
+     * @param array $mapping
+     */
+    public static function setDomainModMapping(array $mapping)
+    {
+        self::$domainModMapping = $mapping;
+    }
+
+    /**
      * @param string $dataModRef
      *
      * @return DataModInterface
@@ -229,6 +294,17 @@ class DataModSQLContext implements Context
         }
 
         return $dataMod;
+    }
+
+    private function getDomainMod($domainModRef)
+    {
+        $domainMod = $this->resolveDomainMod($domainModRef);
+
+        if (! class_exists($domainMod)) {
+            throw new DataModNotFoundException($domainMod, self::$domainModMapping);
+        }
+
+        return $domainMod;
     }
 
     /**
@@ -249,5 +325,25 @@ class DataModSQLContext implements Context
         }
 
         return self::DEFAULT_NAMESPACE . $dataModRef;
+    }
+
+    /**
+     * @param string $domainModRef
+     *
+     * @return string
+     */
+    private function resolveDomainMod($domainModRef)
+    {
+        // If we found a custom datamod mapping use that.
+        if (isset(self::$domainModMapping[$domainModRef])) {
+            return self::$domainModMapping[$domainModRef];
+        }
+
+        // If we've got a global namespace where all the datamods reside, just use that.
+        if (isset(self::$domainModMapping['*'])) {
+            return self::$domainModMapping['*'] . $domainModRef;
+        }
+
+        return self::DEFAULT_DOMAIN_NAMESPACE . $domainModRef;
     }
 }

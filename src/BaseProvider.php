@@ -411,7 +411,11 @@ abstract class BaseProvider implements APIDecoratorInterface
     public static function select(array $where)
     {
         self::ensureBaseTable();
-        static::getAPI(static::getConnectionName())->select(self::getBaseTableForCaller(), self::resolveDataFieldMappings($where));
+
+        static::getAPI(static::getConnectionName())->select(
+            self::getBaseTableForCaller(),
+            self::resolveDataFieldMappings($where)
+        );
     }
 
     /**
@@ -449,6 +453,7 @@ abstract class BaseProvider implements APIDecoratorInterface
     {
         self::ensureBaseTable();
 
+        $values = array_merge(self::getDefaultsForCaller($values), $values);
         static::getAPI(static::getConnectionName())->update(
             self::getBaseTableForCaller(),
             self::resolveDataFieldMappings($values),

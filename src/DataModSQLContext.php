@@ -47,8 +47,8 @@ class DataModSQLContext implements Context
     }
 
     /**
-     * @Given I have a :domainModRef domain fixture with the following data set:
-     * @Given I have a :domainModRef domain fixture
+     * @Given I have a/an :domainModRef domain fixture with the following data set:
+     * @Given I have a/an :domainModRef domain fixture
      *
      * @param string         $dataModRef
      * @param TableNode|null $where

@@ -87,9 +87,9 @@ default:
             dataModMapping: # Optional
                 "*": \QuickPack\DataMod\ # Configure path for all data mods using *.
                 "User": \QuickPack\DataMod\User\User # Configure single data mod.
-	    domainModMapping: # Optional
-		"*": \QuickPack\DomainMod\
-		"User": \QuickPack\DomainMod\User\User
+        domainModMapping: # Optional
+        "*": \QuickPack\DomainMod\
+        "User": \QuickPack\DomainMod\User\User
 ```
 
 debug - Turns debugging on off.
@@ -133,9 +133,9 @@ class FeatureContext
         DataModSQLContext::setDataModMapping([
             '*' => '\\Custom\\DataMod\\'
         ]);
-	DataModSQLContext::setDomainModMapping([
-	    '*' => '\\Custom\\DomainMod\\'
-	]);
+    DataModSQLContext::setDomainModMapping([
+        '*' => '\\Custom\\DomainMod\\'
+    ]);
 
         $scope->getEnvironment()->registerContextClass(
             DataModSQLContext::class,

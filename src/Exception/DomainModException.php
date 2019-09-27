@@ -11,10 +11,11 @@ class DomainModException extends Exception
 {
     /**
      * @param mixed $domainModRef
+     * @param mixed $dataMod
      * @param mixed $message
      */
-    public function __construct($domainModRef, $message)
+    public function __construct($domainModRef, $dataMod, $message)
     {
-        parent::__construct('[DomainMod $domainModRef]: ' . $message);
+        parent::__construct("[DomainMod $domainModRef::$dataMod]: " . $message);
     }
 }

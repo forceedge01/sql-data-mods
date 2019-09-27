@@ -12,5 +12,5 @@ interface DomainModInterface
      *
      * @return array
      */
-    public static function getDataMods();
+    public static function getDataMods(array $data);
 }

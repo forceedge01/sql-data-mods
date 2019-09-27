@@ -182,14 +182,24 @@ abstract class BaseProvider implements APIDecoratorInterface
     {
         self::ensureBaseTable();
 
+        // If uniqueColumn resolves to *, don't run delete.
+        $mapping = [];
         if ($uniqueColumn) {
             if (! isset($data[$uniqueColumn])) {
                 throw new Exception('Unique column provided in createFixture does not exist on data.');
             }
 
-            static::getAPI(static::getConnectionName())->delete(self::getBaseTableForCaller(), self::resolveDataFieldMappings(
+            $mapping = self::resolveDataFieldMappings(
                 [$uniqueColumn => $data[$uniqueColumn]]
-            ));
+            );
+
+            if ($mapping) {
+                try {
+                    static::getAPI(static::getConnectionName())->delete(self::getBaseTableForCaller(), $mapping);
+                } catch (\Exception $e) {
+                    throw new \Exception($e->getMessage() . print_r($mapping, true));
+                }
+            }
         }
 
         return self::insert($data);
@@ -280,6 +290,34 @@ abstract class BaseProvider implements APIDecoratorInterface
         } catch (Exception $e) {
             return $defaultValue;
         }
+    }
+
+    /**
+     * @return array
+     */
+    public static function getValues()
+    {
+        $mapping = self::getDataMappingForCaller();
+
+        $values = [];
+        try {
+            foreach ($mapping as $mapped => $column) {
+                if ($column === '*') {
+                    continue;
+                }
+
+                $values[$mapped] = static::getAPI(static::getConnectionName())->get('keyStore')
+                    ->getKeyword(
+                        self::getBaseTableForCaller() .
+                        '.' .
+                        $column
+                    );
+            }
+        } catch (Exception $e) {
+            return [];
+        }
+
+        return $values;
     }
 
     /**
@@ -387,6 +425,15 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
+     * @return string
+     * @param  mixed  $string
+     */
+    public static function expandKeys($string)
+    {
+        return self::getApi()->get('keyStore')->parseKeywordsInString($string);
+    }
+
+    /**
      * @param array $indexes
      * @param array $data
      *
@@ -440,12 +487,12 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
-     * Since an update can cause chaos and affect other rows without immediately
+     * Since an update can cause chaos and affect other rows without immediate
      * implications, this method should be used from within a method exposed
      * by the data module with more context around what it intends to do.
      *
      * This method is protected and should be implemented
-     * by one your data modules, this is so you can provide more context around the action your taking.
+     * by one your data modules, this is so you can provide more context around the action you're taking.
      *
      * @param array $values The values data set to update with.
      * @param array $where  The selection criteria.

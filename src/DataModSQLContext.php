@@ -59,13 +59,13 @@ class DataModSQLContext implements Context
      */
     public function givenIADomainFixture($domainModRef, TableNode $where = null)
     {
-        $domainMod = $this->getDomainMod($domainModRef);
-        $dataMods = $domainMod::getDataMods();
-
         $data = [];
         if ($where) {
             $data = DataRetriever::transformTableNodeToSingleDataSet($where);
         }
+
+        $domainMod = $this->getDomainMod($domainModRef);
+        $dataMods = $domainMod::getDataMods($data);
 
         foreach ($dataMods as $dataMod) {
             if (!class_exists($dataMod)) {
@@ -82,7 +82,7 @@ class DataModSQLContext implements Context
                     $uniqueKey
                 );
             } catch (\Exception $e) {
-                throw new Exception\DomainModException($domainModRef, $e->getMessage());
+                throw new Exception\DomainModException($domainModRef, $dataMod, $e->getMessage());
             }
         }
     }

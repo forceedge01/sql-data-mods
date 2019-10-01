@@ -131,7 +131,6 @@ abstract class BaseProvider implements APIDecoratorInterface
      * Use method specific default calls instead such as getInsertDefaults, getUpdateDefaults.
      *
      * @param array $data The data being passed in.
-     * @param mixed $type
      *
      * @return array
      */
@@ -474,8 +473,9 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
+     * @param mixed $string
+     *
      * @return string
-     * @param  mixed  $string
      */
     public static function expandKeys($string)
     {

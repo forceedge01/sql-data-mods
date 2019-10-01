@@ -359,11 +359,16 @@ class User extends BaseProvider
      * Any data provided overwrites the default data.
      * This is a good opportunity to set foreign key values using the subSelect call.
      *
+     * Similar methods are available:
+     * - getSelectDefaults()
+     * - getUpdateDefaults()
+     * - getDeleteDefaults()
+     *
      * @param array $data The data passed in to the data mod.
      *
      * @return array
      */
-    public static function getDefaults(array $data)
+    public static function getInsertDefaults(array $data)
     {
         return [
             'dateOfBirth' => '1989-05-10',
@@ -393,9 +398,10 @@ class User extends BaseProvider
 
 ```
 
-The getDefaults() method is special, it will be called automatically if it exists. It allows you to set default values
+The getInsertDefaults() method is special, it will be called automatically if it exists. It allows you to set default values
 for any column. An example could be a boolean flag of some sort that you don't want to keep defining or want to override 
-optionally. Another example could be setting foreign keys correctly.
+optionally. Another example could be setting foreign keys correctly or imposing requirements for certain operations. You have
+this method for each operator type i.e select, update, insert and delete.
 
 Combining Data mods (Domain Mod)
 --------------------------------

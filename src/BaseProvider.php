@@ -6,6 +6,7 @@ use Exception;
 use Genesis\SQLExtensionWrapper\Contract\APIDecoratorInterface;
 use Genesis\SQLExtensionWrapper\Contract\BridgeInterface;
 use Genesis\SQLExtensionWrapper\Contract\BridgedDataModInterface;
+use Genesis\SQLExtensionWrapper\Exception\DefaultValuesException;
 use Genesis\SQLExtensionWrapper\Exception\RequiredDataException;
 use Genesis\SQLExtension\Context;
 use Genesis\SQLExtension\Context\Interfaces;
@@ -126,6 +127,9 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
+     * @deprecated To be removed in next major release.
+     * Use method specific default calls instead such as getInsertDefaults, getUpdateDefaults.
+     *
      * @param array $data The data being passed in.
      *
      * @return array
@@ -133,9 +137,53 @@ abstract class BaseProvider implements APIDecoratorInterface
     public static function getDefaultsForCaller(array $data)
     {
         if (method_exists(get_called_class(), 'getDefaults')) {
-            return static::getDefaults($data);
+            try {
+                return static::getDefaults($data);
+            } catch (Exception $e) {
+                throw new DefaultValuesException(get_called_class(), $e->getMessage());
+            }
         }
 
+        return [];
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return array
+     */
+    public static function getInsertDefaults(array $data)
+    {
+        return [];
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return array
+     */
+    public static function getSelectDefaults(array $data)
+    {
+        return [];
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return array
+     */
+    public static function getUpdateDefaults(array $data)
+    {
+        return [];
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return array
+     */
+    public static function getDeleteDefaults(array $data)
+    {
         return [];
     }
 
@@ -425,8 +473,9 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
+     * @param mixed $string
+     *
      * @return string
-     * @param  mixed  $string
      */
     public static function expandKeys($string)
     {
@@ -462,6 +511,12 @@ abstract class BaseProvider implements APIDecoratorInterface
     {
         self::ensureBaseTable();
 
+        try {
+            $where = array_merge(static::getSelectDefaults($where), $where);
+        } catch (Exception $e) {
+            throw new DefaultValuesException(get_called_class(), $e->getMessage(), 'select');
+        }
+
         static::getAPI(static::getConnectionName())->select(
             self::getBaseTableForCaller(),
             self::resolveDataFieldMappings($where)
@@ -479,6 +534,12 @@ abstract class BaseProvider implements APIDecoratorInterface
         self::ensureBaseTable();
 
         $data = array_merge(self::getDefaultsForCaller($data), $data);
+        try {
+            $data = array_merge(static::getInsertDefaults($data), $data);
+        } catch (Exception $e) {
+            throw new DefaultValuesException(get_called_class(), $e->getMessage(), 'insert');
+        }
+
         static::getAPI(static::getConnectionName())->insert(self::getBaseTableForCaller(), self::resolveDataFieldMappings($data));
         $id = static::getAPI(static::getConnectionName())->getLastId();
         static::postCreateHook($id, $data);
@@ -503,7 +564,12 @@ abstract class BaseProvider implements APIDecoratorInterface
     {
         self::ensureBaseTable();
 
-        $values = array_merge(self::getDefaultsForCaller($values), $values);
+        try {
+            $values = array_merge(static::getUpdateDefaults($values), $values);
+        } catch (Exception $e) {
+            throw new DefaultValuesException(get_called_class(), $e->getMessage(), 'update');
+        }
+
         static::getAPI(static::getConnectionName())->update(
             self::getBaseTableForCaller(),
             self::resolveDataFieldMappings($values),
@@ -523,7 +589,16 @@ abstract class BaseProvider implements APIDecoratorInterface
     {
         self::ensureBaseTable();
 
-        static::getAPI(static::getConnectionName())->delete(self::getBaseTableForCaller(), self::resolveDataFieldMappings($where));
+        try {
+            $where = array_merge(static::getDeleteDefaults($where), $where);
+        } catch (Exception $e) {
+            throw new DefaultValuesException(get_called_class(), $e->getMessage(), 'delete');
+        }
+
+        static::getAPI(static::getConnectionName())->delete(
+            self::getBaseTableForCaller(),
+            self::resolveDataFieldMappings($where)
+        );
     }
 
     /**

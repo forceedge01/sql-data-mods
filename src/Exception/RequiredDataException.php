@@ -11,8 +11,8 @@ class RequiredDataException extends Exception
 {
     /**
      * @param string $missingIndex
-     * @param array $indexes
-     * @param array $data
+     * @param array  $indexes
+     * @param array  $data
      */
     public function __construct($missingIndex, array $indexes, array $data)
     {

@@ -50,6 +50,34 @@ class TestClass extends BaseProvider
             ]
         ];
     }
+
+    public static function getUpdateDefaults(array $data)
+    {
+        return [
+            'dateOfBirth' => 123,
+        ];
+    }
+
+    public static function getDeleteDefaults(array $data)
+    {
+        return [
+            'dateOfBirth' => 5,
+        ];
+    }
+
+    public static function getInsertDefaults(array $data)
+    {
+        return [
+            'dateOfBirth' => 0,
+        ];
+    }
+
+    public static function getSelectDefaults(array $data)
+    {
+        return [
+            'name' => 'Abdul',
+        ];
+    }
 }
 
 class TestClassNoSeedSetup extends BaseProvider
@@ -63,12 +91,17 @@ class TestClassNoSeedSetup extends BaseProvider
 
     public static function getBaseTable()
     {
-        return null;
+        return 'no seeding';
     }
 
     public static function getDataMapping()
     {
         return [];
+    }
+
+    public static function getDeleteDefaults(array $data)
+    {
+        throw new Exception('you can\'t call delete on this data mod.');
     }
 }
 
@@ -95,6 +128,7 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
     public function setUp()
     {
         TestClass::$api = $this->createMock(APIInterface::class);
+        TestClassNoSeedSetup::$api = $this->createMock(APIInterface::class);
 
         $this->reflection = new ReflectionClass(TestClass::class);
     }
@@ -204,7 +238,7 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
             ->method('delete');
         TestClass::$api->expects($this->once())
             ->method('insert')
-            ->with('test.table', ['forename' => 'Abdul']);
+            ->with('test.table', ['forename' => 'Abdul', 'dob' => 0]);
         TestClass::$api->expects($this->once())
             ->method('getLastId')
             ->willReturn($lastId);
@@ -234,7 +268,7 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
             ->with('test.table', ['forename' => 'Abdul']);
         TestClass::$api->expects($this->once())
             ->method('insert')
-            ->with('test.table', ['id' => 20, 'forename' => 'Abdul']);
+            ->with('test.table', ['id' => 20, 'forename' => 'Abdul', 'dob' => 0]);
         TestClass::$api->expects($this->once())
             ->method('getLastId')
             ->willReturn($lastId);
@@ -529,7 +563,7 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
         // Prepare / Mock
         TestClass::$api->expects($this->once())
             ->method('select')
-            ->with('test.table', $where);
+            ->with('test.table', $where + ['forename' => 'Abdul']);
 
         // Execute
         $this->invokeMethod('select', [$where]);
@@ -595,6 +629,22 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * testUpdate Test that update executes as expected.
+     *
+     * @expectedException Genesis\SQLExtensionWrapper\Exception\DefaultValuesException
+     * @expectedExceptionMessage Genesis\SQLExtensionWrapper\Tests\TestClassNoSeedSetup::getDeleteDefaults() - you can't call delete on this data mod.
+     */
+    public function testDefaultsThrowsExceptionProperly()
+    {
+        // Prepare / Mock
+        TestClassNoSeedSetup::$api->expects($this->never())
+            ->method('delete');
+
+        // Execute
+        TestClassNoSeedSetup::delete([]);
+    }
+
+    /**
      * testDelete Test that delete executes as expected.
      */
     public function testDelete()
@@ -606,7 +656,28 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
             ->method('delete')
             ->with('test.table', [
                 'forename' => 'Jackie',
-                'id' => 20
+                'id' => 20,
+                'dob' => 5,
+            ]);
+
+        // Execute
+        $this->invokeMethod('delete', [$where]);
+    }
+
+    /**
+     * testDelete Test that delete executes as expected.
+     */
+    public function testDeleteWithDefaults()
+    {
+        // Prepare / Mock
+        $where = ['name' => 'Jackie', 'id' => 20];
+
+        TestClass::$api->expects($this->once())
+            ->method('delete')
+            ->with('test.table', [
+                'forename' => 'Jackie',
+                'id' => 20,
+                'dob' => 5,
             ]);
 
         // Execute

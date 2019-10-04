@@ -92,6 +92,14 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
+     * @return Interfaces\APIInterface $connection
+     */
+    public static function getDataModApi()
+    {
+        return self::getApi(static::getConnectionName());
+    }
+
+    /**
      * Returns the base table to operate on.
      *
      * @return string

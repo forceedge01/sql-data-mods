@@ -363,17 +363,37 @@ abstract class BaseProvider implements APIDecoratorInterface
                 }
 
                 $values[$mapped] = static::getAPI(static::getConnectionName())->get('keyStore')
-                    ->getKeyword(
-                        self::getBaseTableForCaller() .
-                        '.' .
-                        $column
-                    );
+                    ->getKeyword(self::getBaseTableForCaller() . '.' . $column);
             }
         } catch (Exception $e) {
             return [];
         }
 
         return $values;
+    }
+
+    /**
+     * Remove any cached keys in store.
+     *
+     * @return void
+     */
+    public static function close()
+    {
+        $mapping = self::getDataMappingForCaller();
+
+        $values = [];
+        try {
+            foreach ($mapping as $mapped => $column) {
+                if ($column === '*') {
+                    continue;
+                }
+
+                $values[$mapped] = static::getAPI(static::getConnectionName())->get('keyStore')
+                    ->setKeyword(self::getBaseTableForCaller() . '.' . $column, null);
+            }
+        } catch (Exception $e) {
+            return [];
+        }
     }
 
     /**

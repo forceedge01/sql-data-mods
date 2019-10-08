@@ -48,6 +48,17 @@ class DataModSQLContext implements Context
     }
 
     /**
+     * @BeforeScenario
+     *
+     * @return void
+     * @param  mixed $beforeScenario
+     */
+    public function clearStore($beforeScenario)
+    {
+        BaseProvider::getApi()->get('keyStore')->reset();
+    }
+
+    /**
      * @Given I have a/an :domainModRef domain fixture with the following data set:
      * @Given I have a/an :domainModRef domain fixture
      *

@@ -7,7 +7,7 @@ Release details:
 ----------------
 Major: Allow multiple data sources to be defined.
 
-Minor: Resolve environment variables in the connections config using '%VAR%' syntax.
+Minor: Allow aliasing optionally in data mods.
 
 Patch: NA.
 

@@ -10,18 +10,22 @@ default:
   extensions:
     Cjm\Behat\LocalWebserverExtension:
       host : localhost   # defaults to 'localhost'
-      port : 8000            # defaults to '8000'
+      port : 8111            # defaults to '8000'
       docroot: app     # defaults to '%paths.base%/web'
     Genesis\SQLExtensionWrapper\Extension:
-      connection:
-        engine: sqlite
-        dbname: app/db/database.db
+      connection: # Check compatibility with connections setting.
+          engine: sqlite
+          dbname: app/db/datbaase2.db
+      connections:
+        sqlite:
+          engine: sqlite
+          dbname: app/db/database.db
       dataModMapping: # Optional
         "*": \DataMod\ # Configure path for all data mods using *.
       domainModMapping: # Optional
         "*": \DomainMod\ # Configure path for all data mods using *.
     Behat\MinkExtension:
-      base_url: 'http://localhost:8000'
+      base_url: 'http://localhost:8111'
       sessions:
         default:
           goutte: ~

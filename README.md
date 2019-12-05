@@ -67,8 +67,8 @@ default:
         Genesis\SQLExtensionWrapper\Extension:
             connections:
                 mysql:
-                    engine: mysql # mssql, pgsql, sqlite
-                    host: localhost
+                    engine: mysql # mssql, pgsql, sqlite...
+                    host: '%MYSQL_HOST%' # Resolve environment variable
                     port: 3306
                     dbname: mydb_mysql
                     username: root
@@ -76,8 +76,8 @@ default:
                     schema: myschema
                     prefix: dev_
                 mssql:
-                    engine: mssql # mssql, pgsql, sqlite
-                    host: localhost
+                    engine: mssql # mssql, pgsql, sqlite...
+                    host: '%MSSQL_HOST%' # Resolve environment variable
                     port: 1433
                     dbname: mydb_mssql
                     username: root
@@ -94,7 +94,7 @@ default:
 
 debug - Turns debugging on off.
 userUniqueRef: Appends the string onto first column of data provided to the fixture step definitions if its a string. This is so every user has its own unique data if multiple users are targeting a single database.
-connectionDetails: Your database connection details.
+connections: Your database connection details.
 dataModMapping: The autoloading namespace reference to your dataMods. (Optional)
 domainModMapping: The autoloading namespace reference of your domainMods. (Optional)
 

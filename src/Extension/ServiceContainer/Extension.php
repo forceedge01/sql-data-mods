@@ -45,7 +45,6 @@ class Extension implements ExtensionInterface
      * to hook into the configuration of other extensions providing such an
      * extension point.
      *
-     * @param ExtensionManager $extensionManager
      */
     public function initialize(ExtensionManager $extensionManager)
     {
@@ -55,7 +54,6 @@ class Extension implements ExtensionInterface
     /**
      * Setups configuration for the extension.
      *
-     * @param ArrayNodeDefinition $builder
      */
     public function configure(ArrayNodeDefinition $builder)
     {
@@ -102,25 +100,21 @@ class Extension implements ExtensionInterface
     /**
      * Loads extension services into temporary container.
      *
-     * @param ContainerBuilder $container
-     * @param array            $config
      */
     public function load(ContainerBuilder $container, array $config)
     {
-        if (!empty($config['connection']) && !empty($config['connections'])) {
-            throw new \Exception(
-                'Both connection and connections configuration for sql data mods cannot be defined.'
-            );
-        }
-
         // Merge into connections configuration.
         if (!empty($config['connection'])) {
             $config['connections'][0] = $config['connection'];
+            unset($config['connection']);
         }
 
         if (empty($config['connections'])) {
             $config['connections'] = [];
         }
+
+        $config = $this->resolveEnvVars($config);
+
         $container->setParameter('genesis.sqlapiwrapper.config.connections', $config['connections']);
 
         if (! isset($config['dataModMapping'])) {
@@ -140,5 +134,24 @@ class Extension implements ExtensionInterface
         ]);
         $definition->addTag(ContextExtension::INITIALIZER_TAG);
         $container->setDefinition(self::CONTEXT_INITIALISER, $definition);
+    }
+
+    /**
+     * @param string $config
+     *
+     * @return array
+     */
+    private function resolveEnvVars(array $config)
+    {
+        foreach ($config['connections'] as $index => $connection) {
+            foreach ($connection as $key => $value) {
+                if (strpos($value, '%') === 0 && (strrpos($value, '%') === strlen($value) - 1)) {
+                    $value = getenv(trim($value, '%'));
+                }
+                $config['connections'][$index][$key] = $value;
+            }
+        }
+
+        return $config;
     }
 }

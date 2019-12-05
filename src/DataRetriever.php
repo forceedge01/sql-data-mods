@@ -69,7 +69,22 @@ class DataRetriever
     }
 
     /**
-     * @param TableNode $tableNode
+     * @param string $value
+     *
+     * @return void
+     */
+    public static function enum($value, array $values)
+    {
+        if (! in_array($value, $values)) {
+            throw new Exception(sprintf(
+                'Value "%s" is not allowed, allowed values: %s',
+                $value,
+                implode(',', $values)
+            ));
+        }
+    }
+
+    /**
      * @param callable $func Will receive rowNumber, Row data
      *
      * @example Table multiple values for the same target like:
@@ -86,7 +101,6 @@ class DataRetriever
     }
 
     /**
-     * @param TableNode $tableNode
      * @param callable $func Will receive rowNumber, Column, Value
      *
      * @example TableNode:
@@ -109,7 +123,6 @@ class DataRetriever
     }
 
     /**
-     * @param TableNode $tableNode
      * @param callable $func Receives the row number and the complete value set in as args.
      *
      * @example TableNode:
@@ -189,7 +202,6 @@ class DataRetriever
 
     /**
      * @param Traversable $element
-     * @param callable $func
      *
      * @return array
      */

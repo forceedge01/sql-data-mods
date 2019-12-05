@@ -7,7 +7,7 @@ Release details:
 ----------------
 Major: Allow multiple data sources to be defined.
 
-Minor: Domain mods - combine your fragmented data mods into one domain module.
+Minor: Resolve environment variables in the connections config using '%VAR%' syntax.
 
 Patch: NA.
 

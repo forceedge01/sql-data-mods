@@ -77,7 +77,7 @@ class DataModSQLContext implements Context
                 throw new \Exception("DataMod '$dataMod' for DomainMod '$domainModRef' not found.");
             }
 
-            $mapping = self::resolveAliasing($dataMod::getDataMapping());
+            $mapping = BaseProvider::resolveAliasing($dataMod::getDataMapping());
             $modData = array_intersect_key($data, $mapping);
             list($uniqueKey, $dataSet) = $this->getUniqueKeyFromDataset($modData);
 

@@ -234,8 +234,9 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
         ];
         $lastId = 5;
 
-        TestClass::$api->expects($this->never())
-            ->method('delete');
+        TestClass::$api->expects($this->once())
+            ->method('delete')
+            ->with('test.table', ['dob' => 5]);
         TestClass::$api->expects($this->once())
             ->method('insert')
             ->with('test.table', ['forename' => 'Abdul', 'dob' => 0]);
@@ -265,7 +266,7 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
 
         TestClass::$api->expects($this->once())
             ->method('delete')
-            ->with('test.table', ['forename' => 'Abdul']);
+            ->with('test.table', ['forename' => 'Abdul', 'dob' => 5]);
         TestClass::$api->expects($this->once())
             ->method('insert')
             ->with('test.table', ['id' => 20, 'forename' => 'Abdul', 'dob' => 0]);

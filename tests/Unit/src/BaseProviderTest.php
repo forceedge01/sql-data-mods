@@ -941,6 +941,66 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
         return $this->getMockBuilder($class)->disableOriginalConstructor()->getMock();
     }
 
+    public function testResolveAliasingWorksWithFullAliasedDefinitions()
+    {
+        $result = TestClass::resolveAliasing([
+            'id' => 'id',
+            'user name' => 'user_name',
+            'email address' => 'email_address',
+        ]);
+
+        self::assertEquals([
+            'id' => 'id',
+            'user name' => 'user_name',
+            'email address' => 'email_address',
+        ], $result);
+    }
+
+    public function testResolveAliasingWorksWithPartialAliasedDefintions()
+    {
+        $result = TestClass::resolveAliasing([
+            'id',
+            'user_name',
+            'email address' => 'email_address',
+        ]);
+
+        self::assertEquals([
+            'id' => 'id',
+            'user_name' => 'user_name',
+            'email address' => 'email_address',
+        ], $result);
+    }
+
+    public function testResolveAliasingWorksWithFullNoAliases()
+    {
+        $result = TestClass::resolveAliasing([
+            'id',
+            'user_name',
+            'email address',
+        ]);
+
+        self::assertEquals([
+            'id' => 'id',
+            'user_name' => 'user_name',
+            'email address' => 'email address',
+        ], $result);
+    }
+
+    public function testResolveAliasingWorksWithNumericColumnNames()
+    {
+        $result = TestClass::resolveAliasing([
+            '`507`',
+            'abc' => '`222`',
+            'email address',
+        ]);
+
+        self::assertEquals([
+            '`507`' => '`507`',
+            'abc' => '`222`',
+            'email address' => 'email address',
+        ], $result);
+    }
+
     /**
      * @param string $method The method to invoke.
      * @param array  $args   The arguments to pass to the method.
@@ -958,7 +1018,6 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
     /**
      * @param string $property
      *
-     * @return mixed
      */
     private function getPrivatePropertyValue($property)
     {

@@ -33,7 +33,6 @@ class DataModSQLContext implements Context
     private static $userUniqueRef;
 
     /**
-     * @param array   $dataModMapping
      * @param boolean $debug
      * @param string  $userUniqueRef  Will be appended to new data created to separate data based on users.
      *                                Best to limit it to 2 characters.
@@ -51,7 +50,6 @@ class DataModSQLContext implements Context
      * @BeforeScenario
      *
      * @return void
-     * @param  mixed $beforeScenario
      */
     public function clearStore($beforeScenario)
     {
@@ -61,10 +59,6 @@ class DataModSQLContext implements Context
     /**
      * @Given I have a/an :domainModRef domain fixture with the following data set:
      * @Given I have a/an :domainModRef domain fixture
-     *
-     * @param string         $dataModRef
-     * @param TableNode|null $where
-     * @param mixed          $domainModRef
      *
      * @return string
      */
@@ -83,7 +77,7 @@ class DataModSQLContext implements Context
                 throw new \Exception("DataMod '$dataMod' for DomainMod '$domainModRef' not found.");
             }
 
-            $mapping = $dataMod::getDataMapping();
+            $mapping = BaseProvider::resolveAliasing($dataMod::getDataMapping());
             $modData = array_intersect_key($data, $mapping);
             list($uniqueKey, $dataSet) = $this->getUniqueKeyFromDataset($modData);
 
@@ -124,7 +118,6 @@ class DataModSQLContext implements Context
     }
 
     /**
-     * @param array|null $data
      *
      * @return string
      */
@@ -147,7 +140,6 @@ class DataModSQLContext implements Context
     /**
      * @Given I have an existing :dataModRef fixture with the following data set:
      *
-     * @param string         $dataModRef
      * @param TableNode|null $where
      *
      * @return string
@@ -162,10 +154,6 @@ class DataModSQLContext implements Context
     /**
      * @Given I have :count :dataModRef fixtures
      * @Given I have :count :dataModRef fixtures with the following data set:
-     *
-     * @param int            $count
-     * @param string         $dataModRef
-     * @param TableNode|null $where
      *
      * @return void
      */
@@ -182,7 +170,6 @@ class DataModSQLContext implements Context
      * Note: The first column value in the TableNode is considered the unique key.
      *
      * @param string    $dataModRef
-     * @param TableNode $where
      */
     public function givenIMultipleCreateFixtures($dataModRef, TableNode $where)
     {
@@ -208,7 +195,6 @@ class DataModSQLContext implements Context
     /**
      * @Given I do not have a/any :dataModRef fixture(s)
      * @Given I do not have a/any :dataModRef fixture(s) with the following data set:
-     * @param mixed $dataModRef
      */
     public function iDoNotHaveAFixtureWithTheFollowingDataSet($dataModRef, TableNode $where = null)
     {
@@ -226,7 +212,6 @@ class DataModSQLContext implements Context
      *
      * @Then I should have a :dataModRef
      * @Then I should have a :dataModRef with the following data set:
-     * @param mixed $dataModRef
      */
     public function iShouldHaveAWithTheFollowingDataSet($dataModRef, TableNode $where = null)
     {
@@ -244,7 +229,6 @@ class DataModSQLContext implements Context
      *
      * @Then I should not have a :dataModRef
      * @Then I should not have a :dataModRef with the following data set:
-     * @param mixed $dataModRef
      */
     public function iShouldNotHaveAWithTheFollowingDataSet($dataModRef, TableNode $where = null)
     {
@@ -259,7 +243,6 @@ class DataModSQLContext implements Context
 
     /**
      * @Given I save the id as :key
-     * @param mixed $key
      */
     public function iSaveTheIdAs($key)
     {
@@ -269,7 +252,6 @@ class DataModSQLContext implements Context
     }
 
     /**
-     * @param array $dataModMapping
      */
     private static function setDataModMappingFromBehatYamlFile(array $dataModMapping = array())
     {
@@ -281,7 +263,6 @@ class DataModSQLContext implements Context
     }
 
     /**
-     * @param array $mapping
      */
     public static function setDataModMapping(array $mapping)
     {
@@ -289,7 +270,6 @@ class DataModSQLContext implements Context
     }
 
     /**
-     * @param array $mapping
      */
     public static function setDomainModMapping(array $mapping)
     {

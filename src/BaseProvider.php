@@ -45,7 +45,6 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
-     * @param array $credentials
      */
     private static function instantiateApi(array $credentials)
     {
@@ -72,8 +71,9 @@ abstract class BaseProvider implements APIDecoratorInterface
      *
      * Override if you want to use a different version of the API.
      *
-     * @return Context\Api
      * @param  Interfaces\APIInterface $connection
+     *
+     * @return Context\Api
      */
     public static function getApi($connection = '')
     {
@@ -131,7 +131,22 @@ abstract class BaseProvider implements APIDecoratorInterface
             return $bridge->getDataMapping(static::getBridgedClass());
         }
 
-        return static::getDataMapping();
+        return self::resolveAliasing(static::getDataMapping());
+    }
+
+    /**
+     * @return array
+     */
+    public static function resolveAliasing(array $dataMapping)
+    {
+        foreach ($dataMapping as $alias => $mapping) {
+            if (is_numeric($alias)) {
+                $dataMapping[$mapping] = $mapping;
+                unset($dataMapping[$alias]);
+            }
+        }
+
+        return $dataMapping;
     }
 
     /**
@@ -156,7 +171,6 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
-     * @param array $data
      *
      * @return array
      */
@@ -166,7 +180,6 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
-     * @param array $data
      *
      * @return array
      */
@@ -176,7 +189,6 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
-     * @param array $data
      *
      * @return array
      */
@@ -186,7 +198,6 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
-     * @param array $data
      *
      * @return array
      */
@@ -264,7 +275,6 @@ abstract class BaseProvider implements APIDecoratorInterface
     /**
      * Get a row from the database.
      *
-     * @param array $where
      *
      * @return array
      */
@@ -285,7 +295,6 @@ abstract class BaseProvider implements APIDecoratorInterface
      * Get value of a column from the database.
      *
      * @param string $column
-     * @param array  $where
      *
      * @return string
      */
@@ -501,7 +510,6 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
-     * @param mixed $string
      *
      * @return string
      */
@@ -511,8 +519,6 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
-     * @param array $indexes
-     * @param array $data
      *
      * @return void
      */
@@ -630,7 +636,6 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
-     * @param array $where
      *
      * @return string
      */
@@ -641,7 +646,6 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
-     * @param array $where
      *
      * @return string
      */
@@ -652,7 +656,6 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
-     * @param array $data
      *
      * @return Representations\Query
      */
@@ -742,12 +745,13 @@ abstract class BaseProvider implements APIDecoratorInterface
      *
      * @return void
      */
-    protected static function postCreateHook($id, array $data) {}
+    protected static function postCreateHook($id, array $data)
+    {
+    }
 
     /**
      * Process seed data insertion.
      *
-     * @param array $seedData
      *
      * @return void
      */

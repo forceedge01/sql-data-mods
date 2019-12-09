@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "db2700f26d6f162560a951d3d6eef177",
+    "content-hash": "9e36e26271b687c88ae5af2425424501",
     "packages": [
         {
             "name": "behat/behat",
@@ -216,20 +216,21 @@
             ],
             "description": "Promoting the interoperability of container objects (DIC, SL, etc.)",
             "homepage": "https://github.com/container-interop/container-interop",
+            "abandoned": "psr/container",
             "time": "2017-02-14T19:40:03+00:00"
         },
         {
             "name": "genesis/behat-sql-extension",
-            "version": "7.0.0",
+            "version": "8.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/forceedge01/behat-sql-extension.git",
-                "reference": "607faf3ee169b225944152e99b446c8d489ad4a3"
+                "reference": "6860a67a1fc1e3b1dd262a0524a53e209d333afe"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/forceedge01/behat-sql-extension/zipball/607faf3ee169b225944152e99b446c8d489ad4a3",
-                "reference": "607faf3ee169b225944152e99b446c8d489ad4a3",
+                "url": "https://api.github.com/repos/forceedge01/behat-sql-extension/zipball/6860a67a1fc1e3b1dd262a0524a53e209d333afe",
+                "reference": "6860a67a1fc1e3b1dd262a0524a53e209d333afe",
                 "shasum": ""
             },
             "require": {
@@ -275,7 +276,7 @@
                 "testing",
                 "web"
             ],
-            "time": "2019-10-08T14:02:29+00:00"
+            "time": "2019-12-06T16:08:32+00:00"
         },
         {
             "name": "psr/container",

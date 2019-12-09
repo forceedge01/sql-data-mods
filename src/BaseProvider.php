@@ -9,6 +9,7 @@ use Genesis\SQLExtensionWrapper\Contract\BridgedDataModInterface;
 use Genesis\SQLExtensionWrapper\Exception\DefaultValuesException;
 use Genesis\SQLExtensionWrapper\Exception\RequiredDataException;
 use Genesis\SQLExtension\Context;
+use Genesis\SQLExtension\Context\Exceptions\NoWhereClauseException;
 use Genesis\SQLExtension\Context\Interfaces;
 
 /**
@@ -249,24 +250,21 @@ abstract class BaseProvider implements APIDecoratorInterface
     {
         self::ensureBaseTable();
 
-        // If uniqueColumn resolves to *, don't run delete.
-        $mapping = [];
+        $dataSet = [];
         if ($uniqueColumn) {
             if (! isset($data[$uniqueColumn])) {
                 throw new Exception('Unique column provided in createFixture does not exist on data.');
             }
 
-            $mapping = self::resolveDataFieldMappings(
-                [$uniqueColumn => $data[$uniqueColumn]]
-            );
+            $dataSet = [$uniqueColumn => $data[$uniqueColumn]];
+        }
 
-            if ($mapping) {
-                try {
-                    static::getAPI(static::getConnectionName())->delete(self::getBaseTableForCaller(), $mapping);
-                } catch (\Exception $e) {
-                    throw new \Exception($e->getMessage() . print_r($mapping, true));
-                }
-            }
+        try {
+            self::delete($dataSet);
+        } catch (NoWhereClauseException $e) {
+            // Ignore...
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage() . print_r($dataSet, true));
         }
 
         return self::insert($data);

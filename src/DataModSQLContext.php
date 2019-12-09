@@ -93,6 +93,41 @@ class DataModSQLContext implements Context
     }
 
     /**
+     * @Given I have additional :domainModRef domain fixture with the following data set:
+     * @Given I have additional :domainModRef domain fixture
+     *
+     * @return string
+     */
+    public function givenIHaveAdditionalDomainFixture($domainModRef, TableNode $where = null)
+    {
+        $data = [];
+        if ($where) {
+            $data = DataRetriever::transformTableNodeToSingleDataSet($where);
+        }
+
+        $domainMod = $this->getDomainMod($domainModRef);
+        $dataMods = $domainMod::getDataMods($data);
+
+        foreach ($dataMods as $dataMod) {
+            if (!class_exists($dataMod)) {
+                throw new \Exception("DataMod '$dataMod' for DomainMod '$domainModRef' not found.");
+            }
+
+            $mapping = BaseProvider::resolveAliasing($dataMod::getDataMapping());
+            $modData = array_intersect_key($data, $mapping);
+            list($uniqueKey, $dataSet) = $this->getUniqueKeyFromDataset($modData);
+
+            try {
+                $dataMod::insert(
+                    $dataSet
+                );
+            } catch (\Exception $e) {
+                throw new Exception\DomainModException($domainModRef, $dataMod, $e->getMessage());
+            }
+        }
+    }
+
+    /**
      * @Given I have a/an :dataModRef fixture
      * @Given I have a/an :dataModRef fixture with the following data set:
      *
@@ -114,6 +149,30 @@ class DataModSQLContext implements Context
         $dataMod::createFixture(
             $dataSet,
             $uniqueKey
+        );
+    }
+
+    /**
+     * @Given I have additional :dataModRef fixture
+     * @Given I have additional :dataModRef fixture with the following data set:
+     *
+     * Note: Additional fixture calls do not delete data only add them.
+     *
+     * @param string    $dataModRef
+     * @param TableNode $where
+     */
+    public function givenIHaveAdditionalACreateFixture($dataModRef, TableNode $where = null)
+    {
+        $dataMod = $this->getDataMod($dataModRef);
+
+        // You don't need to necessarily have a where clause to create a fixture.
+        if ($where) {
+            $where = DataRetriever::transformTableNodeToSingleDataSet($where);
+        }
+        list($uniqueKey, $dataSet) = $this->getUniqueKeyFromDataset($where);
+
+        $dataMod::insert(
+            $dataSet
         );
     }
 
@@ -186,6 +245,27 @@ class DataModSQLContext implements Context
             $dataMod::createFixture(
                 $dataSet,
                 $uniqueKey
+            );
+        }
+
+        BaseProvider::getApi()->setKeyword(strtolower($dataModRef) . '_set', $dataSets);
+    }
+
+    /**
+     * @Given I have additional multiple :dataModRef fixtures with the following data set(s):
+     *
+     * Note: Additional calls do not delete data first, only add them.
+     *
+     * @param string    $dataModRef
+     */
+    public function givenIHaveAdditionalMultipleCreateFixtures($dataModRef, TableNode $where)
+    {
+        $dataMod = $this->getDataMod($dataModRef);
+        $dataSets = DataRetriever::transformTableNodeToMultiDataSets($where);
+
+        foreach ($dataSets as $dataSet) {
+            $dataMod::insert(
+                $dataSet
             );
         }
 

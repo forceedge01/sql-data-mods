@@ -9,7 +9,7 @@ Major: Allow multiple data sources to be defined.
 
 Minor: Allow aliasing optionally in data mods.
 
-Patch: NA.
+Patch: Delete call in create fixture considers default values set.
 
 Tools provided by this package:
 --------------------------------

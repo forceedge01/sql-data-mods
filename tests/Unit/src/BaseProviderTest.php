@@ -16,7 +16,7 @@ class TestClass extends BaseProvider
     public static $api;
     public static $table = 'test.table';
 
-    public static function getAPI()
+    public static function getAPI($connection = '')
     {
         return self::$api;
     }
@@ -50,25 +50,58 @@ class TestClass extends BaseProvider
             ]
         ];
     }
+
+    public static function getUpdateDefaults(array $data)
+    {
+        return [
+            'dateOfBirth' => 123,
+        ];
+    }
+
+    public static function getDeleteDefaults(array $data)
+    {
+        return [
+            'dateOfBirth' => 5,
+        ];
+    }
+
+    public static function getInsertDefaults(array $data)
+    {
+        return [
+            'dateOfBirth' => 0,
+        ];
+    }
+
+    public static function getSelectDefaults(array $data)
+    {
+        return [
+            'name' => 'Abdul',
+        ];
+    }
 }
 
 class TestClassNoSeedSetup extends BaseProvider
 {
     public static $api;
 
-    public static function getAPI()
+    public static function getAPI($connection = '')
     {
         return $api;
     }
 
     public static function getBaseTable()
     {
-        return null;
+        return 'no seeding';
     }
 
     public static function getDataMapping()
     {
         return [];
+    }
+
+    public static function getDeleteDefaults(array $data)
+    {
+        throw new Exception('you can\'t call delete on this data mod.');
     }
 }
 
@@ -95,6 +128,7 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
     public function setUp()
     {
         TestClass::$api = $this->createMock(APIInterface::class);
+        TestClassNoSeedSetup::$api = $this->createMock(APIInterface::class);
 
         $this->reflection = new ReflectionClass(TestClass::class);
     }
@@ -104,25 +138,27 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
      */
     public function testSetCredentails()
     {
-        $result = $this->getPrivatePropertyValue('sqlApi');
+        $result = $this->getPrivatePropertyValue('sqlApis');
 
         self::assertNull($result);
 
         // Prepare / Mock
         $credentials = [
+            [
             'engine' => 'dblib',
             'name' => 'testname',
             'username' => 'testusername',
             'password' => 'testpassword',
             'port' => 'testport'
+            ]
         ];
-    
+
         // Execute
         TestClass::setCredentials($credentials);
 
-        $result = $this->getPrivatePropertyValue('sqlApi');
+        $result = $this->getPrivatePropertyValue('sqlApis');
 
-        self::assertInstanceOf(APIInterface::class, $result);
+        self::assertInstanceOf(APIInterface::class, current($result));
     }
 
     /**
@@ -131,13 +167,15 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
     public function testGetApi()
     {
         // Prepare / Mock
-        $this->setPrivatePropertyValue('sqlApi', 'banana');
-    
-        // Execute
-        $result = BaseProvider::getApi();
-    
+        $this->setPrivatePropertyValue('sqlApis', [
+            'mysql' => ['engine' => 'mysql'],
+            'mssql' => ['engine' => 'mssql']
+        ]);
+
         // Assert Result
-        self::assertEquals('banana', $result);
+        self::assertEquals(['engine' => 'mysql'], BaseProvider::getApi());
+        self::assertEquals(['engine' => 'mysql'], BaseProvider::getApi('mysql'));
+        self::assertEquals(['engine' => 'mssql'], BaseProvider::getApi('mssql'));
     }
 
     /**
@@ -196,11 +234,12 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
         ];
         $lastId = 5;
 
-        TestClass::$api->expects($this->never())
-            ->method('delete');
+        TestClass::$api->expects($this->once())
+            ->method('delete')
+            ->with('test.table', ['dob' => 5]);
         TestClass::$api->expects($this->once())
             ->method('insert')
-            ->with('test.table', ['forename' => 'Abdul']);
+            ->with('test.table', ['forename' => 'Abdul', 'dob' => 0]);
         TestClass::$api->expects($this->once())
             ->method('getLastId')
             ->willReturn($lastId);
@@ -227,10 +266,10 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
 
         TestClass::$api->expects($this->once())
             ->method('delete')
-            ->with('test.table', ['forename' => 'Abdul']);
+            ->with('test.table', ['forename' => 'Abdul', 'dob' => 5]);
         TestClass::$api->expects($this->once())
             ->method('insert')
-            ->with('test.table', ['id' => 20, 'forename' => 'Abdul']);
+            ->with('test.table', ['id' => 20, 'forename' => 'Abdul', 'dob' => 0]);
         TestClass::$api->expects($this->once())
             ->method('getLastId')
             ->willReturn($lastId);
@@ -525,7 +564,7 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
         // Prepare / Mock
         TestClass::$api->expects($this->once())
             ->method('select')
-            ->with('test.table', $where);
+            ->with('test.table', $where + ['forename' => 'Abdul']);
 
         // Execute
         $this->invokeMethod('select', [$where]);
@@ -591,6 +630,22 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
     }
 
     /**
+     * testUpdate Test that update executes as expected.
+     *
+     * @expectedException Genesis\SQLExtensionWrapper\Exception\DefaultValuesException
+     * @expectedExceptionMessage Genesis\SQLExtensionWrapper\Tests\TestClassNoSeedSetup::getDeleteDefaults() - you can't call delete on this data mod.
+     */
+    public function testDefaultsThrowsExceptionProperly()
+    {
+        // Prepare / Mock
+        TestClassNoSeedSetup::$api->expects($this->never())
+            ->method('delete');
+
+        // Execute
+        TestClassNoSeedSetup::delete([]);
+    }
+
+    /**
      * testDelete Test that delete executes as expected.
      */
     public function testDelete()
@@ -602,7 +657,28 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
             ->method('delete')
             ->with('test.table', [
                 'forename' => 'Jackie',
-                'id' => 20
+                'id' => 20,
+                'dob' => 5,
+            ]);
+
+        // Execute
+        $this->invokeMethod('delete', [$where]);
+    }
+
+    /**
+     * testDelete Test that delete executes as expected.
+     */
+    public function testDeleteWithDefaults()
+    {
+        // Prepare / Mock
+        $where = ['name' => 'Jackie', 'id' => 20];
+
+        TestClass::$api->expects($this->once())
+            ->method('delete')
+            ->with('test.table', [
+                'forename' => 'Jackie',
+                'id' => 20,
+                'dob' => 5,
             ]);
 
         // Execute
@@ -623,7 +699,7 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
                 'forename' => 'Jackie',
                 'id' => 20
             ]);
-    
+
         // Execute
         TestClass::assertExists($where);
     }
@@ -642,7 +718,7 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
                 'forename' => 'Jackie',
                 'id' => 20
             ]);
-    
+
         // Execute
         TestClass::assertNotExists($where);
     }
@@ -866,9 +942,69 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
         return $this->getMockBuilder($class)->disableOriginalConstructor()->getMock();
     }
 
+    public function testResolveAliasingWorksWithFullAliasedDefinitions()
+    {
+        $result = TestClass::resolveAliasing([
+            'id' => 'id',
+            'user name' => 'user_name',
+            'email address' => 'email_address',
+        ]);
+
+        self::assertEquals([
+            'id' => 'id',
+            'user name' => 'user_name',
+            'email address' => 'email_address',
+        ], $result);
+    }
+
+    public function testResolveAliasingWorksWithPartialAliasedDefintions()
+    {
+        $result = TestClass::resolveAliasing([
+            'id',
+            'user_name',
+            'email address' => 'email_address',
+        ]);
+
+        self::assertEquals([
+            'id' => 'id',
+            'user_name' => 'user_name',
+            'email address' => 'email_address',
+        ], $result);
+    }
+
+    public function testResolveAliasingWorksWithFullNoAliases()
+    {
+        $result = TestClass::resolveAliasing([
+            'id',
+            'user_name',
+            'email address',
+        ]);
+
+        self::assertEquals([
+            'id' => 'id',
+            'user_name' => 'user_name',
+            'email address' => 'email address',
+        ], $result);
+    }
+
+    public function testResolveAliasingWorksWithNumericColumnNames()
+    {
+        $result = TestClass::resolveAliasing([
+            '`507`',
+            'abc' => '`222`',
+            'email address',
+        ]);
+
+        self::assertEquals([
+            '`507`' => '`507`',
+            'abc' => '`222`',
+            'email address' => 'email address',
+        ], $result);
+    }
+
     /**
      * @param string $method The method to invoke.
-     * @param array $args The arguments to pass to the method.
+     * @param array  $args   The arguments to pass to the method.
      *
      * @return string
      */
@@ -883,7 +1019,6 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
     /**
      * @param string $property
      *
-     * @return mixed
      */
     private function getPrivatePropertyValue($property)
     {

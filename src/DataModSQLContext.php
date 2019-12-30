@@ -5,6 +5,7 @@ namespace Genesis\SQLExtensionWrapper;
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\TableNode;
 use Genesis\SQLExtensionWrapper\Exception\DataModNotFoundException;
+use Genesis\SQLExtensionWrapper\Exception\DomainModNotFoundException;
 use Genesis\SQLExtension\Context\Debugger;
 
 /**
@@ -14,6 +15,7 @@ use Genesis\SQLExtension\Context\Debugger;
 class DataModSQLContext implements Context
 {
     const DEFAULT_NAMESPACE = '\\DataMod\\';
+    const DEFAULT_DOMAIN_NAMESPACE = '\\DomainMod\\';
 
     /**
      * @var array
@@ -21,12 +23,16 @@ class DataModSQLContext implements Context
     private static $dataModMapping = [];
 
     /**
+     * @var array
+     */
+    private static $domainModMapping = [];
+
+    /**
      * @var string
      */
     private static $userUniqueRef;
 
     /**
-     * @param array   $dataModMapping
      * @param boolean $debug
      * @param string  $userUniqueRef  Will be appended to new data created to separate data based on users.
      *                                Best to limit it to 2 characters.
@@ -38,6 +44,87 @@ class DataModSQLContext implements Context
         }
 
         self::$userUniqueRef = $userUniqueRef;
+    }
+
+    /**
+     * @BeforeScenario
+     *
+     * @return void
+     */
+    public function clearStore($beforeScenario)
+    {
+        BaseProvider::getApi()->get('keyStore')->reset();
+    }
+
+    /**
+     * @Given I have a/an :domainModRef domain fixture with the following data set:
+     * @Given I have a/an :domainModRef domain fixture
+     *
+     * @return string
+     */
+    public function givenIADomainFixture($domainModRef, TableNode $where = null)
+    {
+        $data = [];
+        if ($where) {
+            $data = DataRetriever::transformTableNodeToSingleDataSet($where);
+        }
+
+        $domainMod = $this->getDomainMod($domainModRef);
+        $dataMods = $domainMod::getDataMods($data);
+
+        foreach ($dataMods as $dataMod) {
+            if (!class_exists($dataMod)) {
+                throw new \Exception("DataMod '$dataMod' for DomainMod '$domainModRef' not found.");
+            }
+
+            $mapping = BaseProvider::resolveAliasing($dataMod::getDataMapping());
+            $modData = array_intersect_key($data, $mapping);
+            list($uniqueKey, $dataSet) = $this->getUniqueKeyFromDataset($modData);
+
+            try {
+                $dataMod::createFixture(
+                    $dataSet,
+                    $uniqueKey
+                );
+            } catch (\Exception $e) {
+                throw new Exception\DomainModException($domainModRef, $dataMod, $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * @Given I have additional :domainModRef domain fixture with the following data set:
+     * @Given I have additional :domainModRef domain fixture
+     *
+     * @return string
+     */
+    public function givenIHaveAdditionalDomainFixture($domainModRef, TableNode $where = null)
+    {
+        $data = [];
+        if ($where) {
+            $data = DataRetriever::transformTableNodeToSingleDataSet($where);
+        }
+
+        $domainMod = $this->getDomainMod($domainModRef);
+        $dataMods = $domainMod::getDataMods($data);
+
+        foreach ($dataMods as $dataMod) {
+            if (!class_exists($dataMod)) {
+                throw new \Exception("DataMod '$dataMod' for DomainMod '$domainModRef' not found.");
+            }
+
+            $mapping = BaseProvider::resolveAliasing($dataMod::getDataMapping());
+            $modData = array_intersect_key($data, $mapping);
+            list($uniqueKey, $dataSet) = $this->getUniqueKeyFromDataset($modData);
+
+            try {
+                $dataMod::insert(
+                    $dataSet
+                );
+            } catch (\Exception $e) {
+                throw new Exception\DomainModException($domainModRef, $dataMod, $e->getMessage());
+            }
+        }
     }
 
     /**
@@ -54,16 +141,10 @@ class DataModSQLContext implements Context
         $dataMod = $this->getDataMod($dataModRef);
 
         // You don't need to necessarily have a where clause to create a fixture.
-        $uniqueKey = null;
-        $dataSet = array();
         if ($where) {
-            $dataSet = DataRetriever::transformTableNodeToSingleDataSet($where);
-            $uniqueKey = key($dataSet);
-
-            if (! is_numeric($dataSet[$uniqueKey])) {
-                $dataSet[$uniqueKey] .= self::$userUniqueRef;
-            }
+            $where = DataRetriever::transformTableNodeToSingleDataSet($where);
         }
+        list($uniqueKey, $dataSet) = $this->getUniqueKeyFromDataset($where);
 
         $dataMod::createFixture(
             $dataSet,
@@ -72,9 +153,52 @@ class DataModSQLContext implements Context
     }
 
     /**
+     * @Given I have additional :dataModRef fixture
+     * @Given I have additional :dataModRef fixture with the following data set:
+     *
+     * Note: Additional fixture calls do not delete data only add them.
+     *
+     * @param string    $dataModRef
+     * @param TableNode $where
+     */
+    public function givenIHaveAdditionalACreateFixture($dataModRef, TableNode $where = null)
+    {
+        $dataMod = $this->getDataMod($dataModRef);
+
+        // You don't need to necessarily have a where clause to create a fixture.
+        if ($where) {
+            $where = DataRetriever::transformTableNodeToSingleDataSet($where);
+        }
+        list($uniqueKey, $dataSet) = $this->getUniqueKeyFromDataset($where);
+
+        $dataMod::insert(
+            $dataSet
+        );
+    }
+
+    /**
+     *
+     * @return string
+     */
+    private function getUniqueKeyFromDataset(array $data = null)
+    {
+        $uniqueKey = null;
+        $dataSet = array();
+        if ($data) {
+            $dataSet = $data;
+            $uniqueKey = key($dataSet);
+
+            if (! is_numeric($dataSet[$uniqueKey])) {
+                $dataSet[$uniqueKey] .= self::$userUniqueRef;
+            }
+        }
+
+        return [$uniqueKey, $dataSet];
+    }
+
+    /**
      * @Given I have an existing :dataModRef fixture with the following data set:
      *
-     * @param string         $dataModRef
      * @param TableNode|null $where
      *
      * @return string
@@ -89,10 +213,6 @@ class DataModSQLContext implements Context
     /**
      * @Given I have :count :dataModRef fixtures
      * @Given I have :count :dataModRef fixtures with the following data set:
-     *
-     * @param int            $count
-     * @param string         $dataModRef
-     * @param TableNode|null $where
      *
      * @return void
      */
@@ -109,7 +229,6 @@ class DataModSQLContext implements Context
      * Note: The first column value in the TableNode is considered the unique key.
      *
      * @param string    $dataModRef
-     * @param TableNode $where
      */
     public function givenIMultipleCreateFixtures($dataModRef, TableNode $where)
     {
@@ -133,9 +252,29 @@ class DataModSQLContext implements Context
     }
 
     /**
+     * @Given I have additional multiple :dataModRef fixtures with the following data set(s):
+     *
+     * Note: Additional calls do not delete data first, only add them.
+     *
+     * @param string    $dataModRef
+     */
+    public function givenIHaveAdditionalMultipleCreateFixtures($dataModRef, TableNode $where)
+    {
+        $dataMod = $this->getDataMod($dataModRef);
+        $dataSets = DataRetriever::transformTableNodeToMultiDataSets($where);
+
+        foreach ($dataSets as $dataSet) {
+            $dataMod::insert(
+                $dataSet
+            );
+        }
+
+        BaseProvider::getApi()->setKeyword(strtolower($dataModRef) . '_set', $dataSets);
+    }
+
+    /**
      * @Given I do not have a/any :dataModRef fixture(s)
      * @Given I do not have a/any :dataModRef fixture(s) with the following data set:
-     * @param mixed $dataModRef
      */
     public function iDoNotHaveAFixtureWithTheFollowingDataSet($dataModRef, TableNode $where = null)
     {
@@ -153,7 +292,6 @@ class DataModSQLContext implements Context
      *
      * @Then I should have a :dataModRef
      * @Then I should have a :dataModRef with the following data set:
-     * @param mixed $dataModRef
      */
     public function iShouldHaveAWithTheFollowingDataSet($dataModRef, TableNode $where = null)
     {
@@ -171,7 +309,6 @@ class DataModSQLContext implements Context
      *
      * @Then I should not have a :dataModRef
      * @Then I should not have a :dataModRef with the following data set:
-     * @param mixed $dataModRef
      */
     public function iShouldNotHaveAWithTheFollowingDataSet($dataModRef, TableNode $where = null)
     {
@@ -186,7 +323,6 @@ class DataModSQLContext implements Context
 
     /**
      * @Given I save the id as :key
-     * @param mixed $key
      */
     public function iSaveTheIdAs($key)
     {
@@ -196,7 +332,6 @@ class DataModSQLContext implements Context
     }
 
     /**
-     * @param array $dataModMapping
      */
     private static function setDataModMappingFromBehatYamlFile(array $dataModMapping = array())
     {
@@ -208,11 +343,17 @@ class DataModSQLContext implements Context
     }
 
     /**
-     * @param array $mapping
      */
     public static function setDataModMapping(array $mapping)
     {
         self::$dataModMapping = $mapping;
+    }
+
+    /**
+     */
+    public static function setDomainModMapping(array $mapping)
+    {
+        self::$domainModMapping = $mapping;
     }
 
     /**
@@ -229,6 +370,22 @@ class DataModSQLContext implements Context
         }
 
         return $dataMod;
+    }
+
+    /**
+     * @param string $domainModRef
+     *
+     * @return string
+     */
+    private function getDomainMod($domainModRef)
+    {
+        $domainMod = $this->resolveDomainMod($domainModRef);
+
+        if (! class_exists($domainMod)) {
+            throw new DomainModNotFoundException($domainMod, self::$domainModMapping);
+        }
+
+        return $domainMod;
     }
 
     /**
@@ -249,5 +406,25 @@ class DataModSQLContext implements Context
         }
 
         return self::DEFAULT_NAMESPACE . $dataModRef;
+    }
+
+    /**
+     * @param string $domainModRef
+     *
+     * @return string
+     */
+    private function resolveDomainMod($domainModRef)
+    {
+        // If we found a custom datamod mapping use that.
+        if (isset(self::$domainModMapping[$domainModRef])) {
+            return self::$domainModMapping[$domainModRef];
+        }
+
+        // If we've got a global namespace where all the datamods reside, just use that.
+        if (isset(self::$domainModMapping['*'])) {
+            return self::$domainModMapping['*'] . $domainModRef;
+        }
+
+        return self::DEFAULT_DOMAIN_NAMESPACE . $domainModRef;
     }
 }

@@ -5,14 +5,15 @@ the web interface. This extension provides a framework where you will configure 
 
 Release details:
 ----------------
-Major: Initialize context through initializer using the extensions channel.
+Major: Allow multiple data sources to be defined.
 
-Minor: Step definition to create multiple fixtures without data and retrieve existing data.
+Minor: Allow aliasing optionally in data mods.
 
-Patch: NA.
+Patch: Delete call in create fixture considers default values set.
 
 Tools provided by this package:
 --------------------------------
+- Define more than one data source i.e mssql, mysql etc.
 - DataModSQLContext - Use your data mods directly with step defintions provided by this class. Just register with the behat.yml
 file and you are good to go.
 - Decorated API BaseProvider Class - for advanced and easy integration with data modules.
@@ -30,11 +31,16 @@ Given I have a "User" fixture with the following data set:
 
 # Insert multiple entries for a datamod.
 Given I have multiple "User" fixtures with the following data sets:
-| name           | email                      |
-| Wahab Qureshi  | its.inevitable@hotmail.com |
-| Sabhat Qureshi | next-gen-coder@hotmail.com |
-| Jawad Qureshi  | to-be-coder@hotmail.com    |
+| name           | email                       |
+| Wahab Qureshi  | its.inevitable@hotmail.com  |
+| Sabhat Qureshi | next-gen-coder@hotmail.com  |
+| Jawad Qureshi  | to-be-coder@hotmail.com     |
+| Another name   | [Users.Email\|Name:Another] |
 ```
+
+The last value in the list above uses an external reference to fetch the value to be inserted. You can find out more about this by
+reading the 'Referencing foreign table values' topic in the behat-sql-extension extension. We do need to escape the pipe character
+in this call so it doesn't result in a syntax error when using table nodes.
 
 The createFixture call will attempt to delete the existing record before it creates another one so you always end up
 with a fresh copy. As easy as it sounds, foreign key constraints may not let that happen. In cases like these you can
@@ -59,24 +65,38 @@ default:
                     userUniqueRef: aq # Optional
     extensions:
         Genesis\SQLExtensionWrapper\Extension:
-            connection:
-                engine: mysql # mssql, pgsql, sqlite
-                host: localhost
-                port: 1234
-                dbname: mydb
-                username: root
-                password: root
-                schema: myschema
-                prefix: dev_
+            connections:
+                mysql:
+                    engine: mysql # mssql, pgsql, sqlite...
+                    host: '%MYSQL_HOST%' # Resolve environment variable
+                    port: 3306
+                    dbname: mydb_mysql
+                    username: root
+                    password: root
+                    schema: myschema
+                    prefix: dev_
+                mssql:
+                    engine: mssql # mssql, pgsql, sqlite...
+                    host: '%MSSQL_HOST%' # Resolve environment variable
+                    port: 1433
+                    dbname: mydb_mssql
+                    username: root
+                    password: root
+                    schema: myschema
+                    prefix: dev_
             dataModMapping: # Optional
                 "*": \QuickPack\DataMod\ # Configure path for all data mods using *.
                 "User": \QuickPack\DataMod\User\User # Configure single data mod.
+            domainModMapping: # Optional
+                "*": \QuickPack\DomainMod\
+                "User": \QuickPack\DomainMod\User\User
 ```
 
 debug - Turns debugging on off.
 userUniqueRef: Appends the string onto first column of data provided to the fixture step definitions if its a string. This is so every user has its own unique data if multiple users are targeting a single database.
-connectionDetails: Your database connection details.
-dataModMapping: Point where your dataMods are via the namespace. (Optional)
+connections: Your database connection details.
+dataModMapping: The autoloading namespace reference to your dataMods. (Optional)
+domainModMapping: The autoloading namespace reference of your domainMods. (Optional)
 
 Please note: The extension expects you to have your dataMods located in the `features/bootstrap/DataMod` folder. If you have a different mapping to this, you will have to define your autoload
 strategy in the composer.json file or manually require the files in. You can set the mapping in php like so:
@@ -97,19 +117,25 @@ class FeatureContext
     public static function loadDataModSQLContext(BeforeSuiteScope $scope)
     {
         BaseProvider::setCredentials([
-            'engine' => 'dblib',
-            'name' => 'databaseName',
-            'schema' => 'dbo',
-            'prefix' => 'dev_',
-            'host' => 'myhost',
-            'port' => '1433',
-            'username' => 'myUsername',
-            'password' => 'myPassword'
+            'mssql' => [
+                'engine' => 'dblib',
+                'name' => 'databaseName',
+                'schema' => 'dbo',
+                'prefix' => 'dev_',
+                'host' => 'myhost',
+                'port' => '1433',
+                'username' => 'myUsername',
+                'password' => 'myPassword'
+            ]
         ]);
 
         // Default path is \\DataMod\\ which points to features/DataMod/, override this way.
         DataModSQLContext::setDataModMapping([
             '*' => '\\Custom\\DataMod\\'
+        ]);
+
+        DataModSQLContext::setDomainModMapping([
+            '*' => '\\Custom\\DomainMod\\'
         ]);
 
         $scope->getEnvironment()->registerContextClass(
@@ -304,6 +330,17 @@ class User extends BaseProvider
     ...
 
     /**
+     * If you've defined multiple connections, you can specify which connection to use for each of your
+     * data mods.
+     *
+     * @return string
+     */
+    public static function getConnectionName()
+    {
+        return 'mssql';
+    }
+
+    /**
      * Special Method: Use this method to create auxiliary data off the initial create. This is suitable
      * for creating data where the tables are fragmented.
      *
@@ -322,11 +359,16 @@ class User extends BaseProvider
      * Any data provided overwrites the default data.
      * This is a good opportunity to set foreign key values using the subSelect call.
      *
+     * Similar methods are available:
+     * - getSelectDefaults()
+     * - getUpdateDefaults()
+     * - getDeleteDefaults()
+     *
      * @param array $data The data passed in to the data mod.
      *
      * @return array
      */
-    public static function getDefaults(array $data)
+    public static function getInsertDefaults(array $data)
     {
         return [
             'dateOfBirth' => '1989-05-10',
@@ -356,9 +398,46 @@ class User extends BaseProvider
 
 ```
 
-The getDefaults() method is special, it will be called automatically if it exists. It allows you to set default values
+The getInsertDefaults() method is special, it will be called automatically if it exists. It allows you to set default values
 for any column. An example could be a boolean flag of some sort that you don't want to keep defining or want to override 
-optionally. Another example could be setting foreign keys correctly.
+optionally. Another example could be setting foreign keys correctly or imposing requirements for certain operations. You have
+this method for each operator type i.e select, update, insert and delete.
+
+Combining Data mods (Domain Mod)
+--------------------------------
+
+Sometimes our data is fragmented between several tables, but we don't want that fragmentation to bleed into our test files.
+To facilitate such a scenario, we've got domain mods.
+
+```php
+<?php
+
+namespace App\Tests\Behaviour\DomainMod;
+
+use App\Tests\Behaviour\DataMod;
+use Genesis\SQLExtensionWrapper\Contract\DomainModInterface;
+
+class User implements DomainModInterface
+{
+    public static function getDataMods()
+    {
+        return [
+            DataMod\User::class,
+            DataMod\UserExt::class,
+        ];
+    }
+}
+
+```
+
+The step definitions to support this feature are:
+
+```yml
+Scenario: ...
+    Given I have a "Ship" domain fixture
+    Given I have a "Ship" domain fixture with the following data set:
+    | name | ABC |
+```
 
 Build dynamic URLs
 -------------------
@@ -470,7 +549,7 @@ Data conversion built in for most common data types:
 Using a Bridge
 --------------
 
-You can also set a bridge between your framework data modules and the wrapper. Your bridge must implement the Genesis\SQLExtensionWrapper\BridgeInterface to work. You can register your bridge like so:
+You can also set a bridge between your framework data modules and the wrapper. Your bridge must implement the Genesis\SQLExtensionWrapper\Contract\BridgeInterface to work. You can register your bridge like so:
 
 ```php
 class FeatureContext

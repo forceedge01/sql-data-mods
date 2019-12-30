@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "genesis/behat-sql-extension": "~6.4",
+        "genesis/behat-sql-extension": "^8.0",
         "php": "~5.5|~7.0"
     },
     "require-dev": {
@@ -28,5 +28,10 @@
             "Genesis\\SQLExtensionWrapper\\Tests\\": "tests/",
             "DataMod\\": "features/bootstrap/DataMod/"
          }
+    },
+    "suggest": {
+        "genesis/behat-fail-aid": "Give your failures clarity and save time.",
+        "genesis/test-routing": "Simplistic routing that can extend main app routing for testing purposes.",
+        "genesis/db-backup-restore": "Quickly backup and restore your database."
     }
 }

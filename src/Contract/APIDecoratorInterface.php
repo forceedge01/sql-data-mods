@@ -1,6 +1,6 @@
 <?php
 
-namespace Genesis\SQLExtensionWrapper;
+namespace Genesis\SQLExtensionWrapper\Contract;
 
 use Genesis\SQLExtension\Context;
 
@@ -40,7 +40,7 @@ interface APIDecoratorInterface
      * Get the value of a column out of the keystore.
      * Depends on getBaseTable.
      *
-     * @param string $key The column name.
+     * @param string      $key          The column name.
      * @param string|null $defaultValue The default value to return if not found.
      *
      * @return string|null
@@ -51,7 +51,7 @@ interface APIDecoratorInterface
      * Get the value of a column out of the keystore. Throws exception if not found.
      * Depends on getBaseTable.
      *
-     * @param string $key The column name.
+     * @param string $key     The column name.
      * @param string $message The message to display when not found.
      *
      * @return string
@@ -70,7 +70,7 @@ interface APIDecoratorInterface
 
     /**
      * @param string $column
-     * @param array $where
+     * @param array  $where
      *
      * @return string
      */
@@ -80,9 +80,9 @@ interface APIDecoratorInterface
      * Create fresh fixture data set everytime this method is run, deleting the old value and recreating it.
      * Depends on getBaseTable.
      *
-     * @param array $data The data set to create the fixture from, note if no data is provided, it will be auto-filled.
+     * @param array       $data         The data set to create the fixture from, note if no data is provided, it will be auto-filled.
      * @param string|null $uniqueColumn The column that uniquely represents the data set and any
-     * old data set would match.
+     *                                  old data set would match.
      *
      * @return int The last insert Id of the fixture data.
      */
@@ -107,7 +107,7 @@ interface APIDecoratorInterface
      * Note: This will only work with the first result returned.
      *
      * @param string $column The column to select within the table.
-     * @param array $where The array to filter the values from.
+     * @param array  $where  The array to filter the values from.
      *
      * @example Example usage: Update postcode where address Id is provided.
      *
@@ -125,9 +125,9 @@ interface APIDecoratorInterface
      * Construct an external reference clause for the query.
      * Note: This will only work with the first result returned.
      *
-     * @param string $table The table to select from.
+     * @param string $table  The table to select from.
      * @param string $column The column to select within the table.
-     * @param array $where The array to filter the values from.
+     * @param array  $where  The array to filter the values from.
      *
      * @example Example usage: Update postcode where address Id is provided.
      *

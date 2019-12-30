@@ -45,7 +45,6 @@ class Extension implements ExtensionInterface
      * to hook into the configuration of other extensions providing such an
      * extension point.
      *
-     * @param ExtensionManager $extensionManager
      */
     public function initialize(ExtensionManager $extensionManager)
     {
@@ -55,42 +54,43 @@ class Extension implements ExtensionInterface
     /**
      * Setups configuration for the extension.
      *
-     * @param ArrayNodeDefinition $builder
      */
     public function configure(ArrayNodeDefinition $builder)
     {
         $builder
             ->children()
                 ->arrayNode('connection')
-                    ->isRequired()
+                    ->setDeprecated('Use "connections" configuration instead.')
                     ->children()
-                        ->scalarNode('host')
-                            ->defaultNull()
-                        ->end()
-                        ->scalarNode('engine')
-                            ->isRequired()
-                        ->end()
-                        ->scalarNode('dbname')
-                            ->defaultNull()
-                        ->end()
-                        ->scalarNode('port')
-                            ->defaultNull()
-                        ->end()
-                        ->scalarNode('username')
-                            ->defaultNull()
-                        ->end()
-                        ->scalarNode('password')
-                            ->defaultNull()
-                        ->end()
-                        ->scalarNode('schema')
-                            ->defaultNull()
-                        ->end()
-                        ->scalarNode('prefix')
-                            ->defaultNull()
+                        ->scalarNode('host')->defaultNull()->end()
+                        ->scalarNode('engine')->isRequired()->end()
+                        ->scalarNode('dbname')->defaultNull()->end()
+                        ->scalarNode('port')->defaultNull()->end()
+                        ->scalarNode('username')->defaultNull()->end()
+                        ->scalarNode('password')->defaultNull()->end()
+                        ->scalarNode('schema')->defaultNull()->end()
+                        ->scalarNode('prefix')->defaultNull()->end()
+                    ->end()
+                ->end()
+                ->arrayNode('connections')
+                    ->useAttributeAsKey('name')
+                    ->arrayPrototype()
+                        ->children()
+                            ->scalarNode('host')->defaultNull()->end()
+                            ->scalarNode('engine')->isRequired()->end()
+                            ->scalarNode('dbname')->defaultNull()->end()
+                            ->scalarNode('port')->defaultNull()->end()
+                            ->scalarNode('username')->defaultNull()->end()
+                            ->scalarNode('password')->defaultNull()->end()
+                            ->scalarNode('schema')->defaultNull()->end()
+                            ->scalarNode('prefix')->defaultNull()->end()
                         ->end()
                     ->end()
                 ->end()
                 ->arrayNode('dataModMapping')
+                    ->ignoreExtraKeys(false)
+                ->end()
+                ->arrayNode('domainModMapping')
                     ->ignoreExtraKeys(false)
                 ->end()
             ->end()
@@ -100,26 +100,58 @@ class Extension implements ExtensionInterface
     /**
      * Loads extension services into temporary container.
      *
-     * @param ContainerBuilder $container
-     * @param array            $config
      */
     public function load(ContainerBuilder $container, array $config)
     {
-        if (! isset($config['connection'])) {
-            $config['connection'] = [];
+        // Merge into connections configuration.
+        if (!empty($config['connection'])) {
+            $config['connections'][0] = $config['connection'];
+            unset($config['connection']);
         }
-        $container->setParameter('genesis.sqlapiwrapper.config.connection', $config['connection']);
+
+        if (empty($config['connections'])) {
+            $config['connections'] = [];
+        }
+
+        $config = $this->resolveEnvVars($config);
+
+        $container->setParameter('genesis.sqlapiwrapper.config.connections', $config['connections']);
 
         if (! isset($config['dataModMapping'])) {
             $config['dataModMapping'] = [];
         }
         $container->setParameter('genesis.sqlapiwrapper.config.datamodmapping', $config['dataModMapping']);
 
+        if (! isset($config['domainModMapping'])) {
+            $config['domainModMapping'] = [];
+        }
+        $container->setParameter('genesis.sqlapiwrapper.config.domainmodmapping', $config['domainModMapping']);
+
         $definition = new Definition(Initializer::class, [
-            '%genesis.sqlapiwrapper.config.connection%',
+            '%genesis.sqlapiwrapper.config.connections%',
             '%genesis.sqlapiwrapper.config.datamodmapping%',
+            '%genesis.sqlapiwrapper.config.domainmodmapping%',
         ]);
         $definition->addTag(ContextExtension::INITIALIZER_TAG);
         $container->setDefinition(self::CONTEXT_INITIALISER, $definition);
+    }
+
+    /**
+     * @param string $config
+     *
+     * @return array
+     */
+    private function resolveEnvVars(array $config)
+    {
+        foreach ($config['connections'] as $index => $connection) {
+            foreach ($connection as $key => $value) {
+                if (strpos($value, '%') === 0 && (strrpos($value, '%') === strlen($value) - 1)) {
+                    $value = getenv(trim($value, '%'));
+                }
+                $config['connections'][$index][$key] = $value;
+            }
+        }
+
+        return $config;
     }
 }

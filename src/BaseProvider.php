@@ -3,8 +3,14 @@
 namespace Genesis\SQLExtensionWrapper;
 
 use Exception;
+use Genesis\SQLExtensionWrapper\Contract\APIDecoratorInterface;
+use Genesis\SQLExtensionWrapper\Contract\BridgeInterface;
+use Genesis\SQLExtensionWrapper\Contract\BridgedDataModInterface;
+use Genesis\SQLExtensionWrapper\Exception\DefaultValuesException;
 use Genesis\SQLExtensionWrapper\Exception\RequiredDataException;
 use Genesis\SQLExtension\Context;
+use Genesis\SQLExtension\Context\Exceptions\NoWhereClauseException;
+use Genesis\SQLExtension\Context\Interfaces;
 
 /**
 * This class serves as a Decorator for the Genesis API class.
@@ -25,30 +31,40 @@ abstract class BaseProvider implements APIDecoratorInterface
     private static $bridge;
 
     /**
-     * @var Context\Api
+     * @var Interfaces\APIInterface[]
      */
-    private static $sqlApi;
+    private static $sqlApis;
 
     /**
      * @return array
      */
-    public static function setCredentials(array $credentials)
+    public static function setCredentials(array $connections)
     {
-        self::setApi($credentials);
+        foreach ($connections as $connection => $credentials) {
+            self::$sqlApis[$connection] = self::instantiateApi($credentials);
+        }
     }
 
     /**
-     * @param array $credentials
      */
-    private static function setApi(array $credentials)
+    private static function instantiateApi(array $credentials)
     {
-        if (! self::$sqlApi) {
-            self::$sqlApi = new Context\API(
-                new Context\DBManager(new Context\DatabaseProviders\Factory(), $credentials),
-                new Context\SQLBuilder(),
-                new Context\LocalKeyStore()
-            );
-        }
+        return new Context\API(
+            new Context\DBManager(new Context\DatabaseProviders\Factory(), $credentials),
+            new Context\SQLBuilder(),
+            new Context\LocalKeyStore()
+        );
+    }
+
+    /**
+     * @overridable - If you've defined multiple connections, you can specify which connection to use for each of your
+     * data mods.
+     *
+     * @return string
+     */
+    public static function getConnectionName()
+    {
+        return '';
     }
 
     /**
@@ -56,11 +72,32 @@ abstract class BaseProvider implements APIDecoratorInterface
      *
      * Override if you want to use a different version of the API.
      *
+     * @param  Interfaces\APIInterface $connection
+     *
      * @return Context\Api
      */
-    public static function getApi()
+    public static function getApi($connection = '')
     {
-        return self::$sqlApi;
+        if ($connection && !isset(self::$sqlApis[$connection])) {
+            throw new Exception(
+                "Requested connection '$connection' is not defined, available connections are: " .
+                print_r(array_keys($connections))
+            );
+        }
+
+        if (!$connection) {
+            return current(self::$sqlApis);
+        }
+
+        return self::$sqlApis[$connection];
+    }
+
+    /**
+     * @return Interfaces\APIInterface $connection
+     */
+    public static function getDataModApi()
+    {
+        return self::getApi(static::getConnectionName());
     }
 
     /**
@@ -83,9 +120,9 @@ abstract class BaseProvider implements APIDecoratorInterface
      * The data mapping to use when reading/writing data to the table.
      *
      * @return array [
-     *     '<mappingName>' => '<mappedToName>',
-     *     ...
-     * ]
+     *               '<mappingName>' => '<mappedToName>',
+     *               ...
+     *               ]
      */
     public static function getDataMappingForCaller()
     {
@@ -95,10 +132,28 @@ abstract class BaseProvider implements APIDecoratorInterface
             return $bridge->getDataMapping(static::getBridgedClass());
         }
 
-        return static::getDataMapping();
+        return self::resolveAliasing(static::getDataMapping());
     }
 
     /**
+     * @return array
+     */
+    public static function resolveAliasing(array $dataMapping)
+    {
+        foreach ($dataMapping as $alias => $mapping) {
+            if (is_numeric($alias)) {
+                $dataMapping[$mapping] = $mapping;
+                unset($dataMapping[$alias]);
+            }
+        }
+
+        return $dataMapping;
+    }
+
+    /**
+     * @deprecated To be removed in next major release.
+     * Use method specific default calls instead such as getInsertDefaults, getUpdateDefaults.
+     *
      * @param array $data The data being passed in.
      *
      * @return array
@@ -106,9 +161,49 @@ abstract class BaseProvider implements APIDecoratorInterface
     public static function getDefaultsForCaller(array $data)
     {
         if (method_exists(get_called_class(), 'getDefaults')) {
-            return static::getDefaults($data);
+            try {
+                return static::getDefaults($data);
+            } catch (Exception $e) {
+                throw new DefaultValuesException(get_called_class(), $e->getMessage());
+            }
         }
 
+        return [];
+    }
+
+    /**
+     *
+     * @return array
+     */
+    public static function getInsertDefaults(array $data)
+    {
+        return [];
+    }
+
+    /**
+     *
+     * @return array
+     */
+    public static function getSelectDefaults(array $data)
+    {
+        return [];
+    }
+
+    /**
+     *
+     * @return array
+     */
+    public static function getUpdateDefaults(array $data)
+    {
+        return [];
+    }
+
+    /**
+     *
+     * @return array
+     */
+    public static function getDeleteDefaults(array $data)
+    {
         return [];
     }
 
@@ -145,9 +240,9 @@ abstract class BaseProvider implements APIDecoratorInterface
      * Depends on getBaseTable. The data provided is validated against the mapping you have set in your data mod
      * so you don't pass in values that are not intended to be passed in.
      *
-     * @param array $data The data set to create the fixture from, note if no data is provided, it will be auto-filled.
+     * @param array  $data         The data set to create the fixture from, note if no data is provided, it will be auto-filled.
      * @param string $uniqueColumn The column that uniquely represents the data set and any
-     * old data set would match.
+     *                             old data set would match.
      *
      * @return int The last insert Id of the fixture data.
      */
@@ -155,14 +250,21 @@ abstract class BaseProvider implements APIDecoratorInterface
     {
         self::ensureBaseTable();
 
+        $dataSet = [];
         if ($uniqueColumn) {
             if (! isset($data[$uniqueColumn])) {
                 throw new Exception('Unique column provided in createFixture does not exist on data.');
             }
 
-            static::getAPI()->delete(self::getBaseTableForCaller(), self::resolveDataFieldMappings(
-                [$uniqueColumn => $data[$uniqueColumn]]
-            ));
+            $dataSet = [$uniqueColumn => $data[$uniqueColumn]];
+        }
+
+        try {
+            self::delete($dataSet);
+        } catch (NoWhereClauseException $e) {
+            // Ignore...
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage() . print_r($dataSet, true));
         }
 
         return self::insert($data);
@@ -171,7 +273,6 @@ abstract class BaseProvider implements APIDecoratorInterface
     /**
      * Get a row from the database.
      *
-     * @param array $where
      *
      * @return array
      */
@@ -192,7 +293,6 @@ abstract class BaseProvider implements APIDecoratorInterface
      * Get value of a column from the database.
      *
      * @param string $column
-     * @param array $where
      *
      * @return string
      */
@@ -209,7 +309,7 @@ abstract class BaseProvider implements APIDecoratorInterface
      * Get the value of a column out of the keystore. Throws exception if not found.
      * Depends on getBaseTable.
      *
-     * @param string $key The column name.
+     * @param string $key     The column name.
      * @param string $message The message to display when not found.
      *
      * @return string
@@ -219,7 +319,7 @@ abstract class BaseProvider implements APIDecoratorInterface
         $mapping = self::getFieldMapping($key);
 
         try {
-            return static::getAPI()->get('keyStore')
+            return static::getAPI(static::getConnectionName())->get('keyStore')
                 ->getKeyword(
                     self::getBaseTableForCaller() .
                     '.' .
@@ -234,7 +334,7 @@ abstract class BaseProvider implements APIDecoratorInterface
      * Get the value of a column out of the keystore.
      * Depends on getBaseTable.
      *
-     * @param string $key The column name.
+     * @param string      $key          The column name.
      * @param string|null $defaultValue The default value to return if not found.
      *
      * @return string|null
@@ -244,7 +344,7 @@ abstract class BaseProvider implements APIDecoratorInterface
         $mapping = self::getFieldMapping($key);
 
         try {
-            return static::getAPI()->get('keyStore')
+            return static::getAPI(static::getConnectionName())->get('keyStore')
                 ->getKeyword(
                     self::getBaseTableForCaller() .
                     '.' .
@@ -256,12 +356,60 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
+     * @return array
+     */
+    public static function getValues()
+    {
+        $mapping = self::getDataMappingForCaller();
+
+        $values = [];
+        try {
+            foreach ($mapping as $mapped => $column) {
+                if ($column === '*') {
+                    continue;
+                }
+
+                $values[$mapped] = static::getAPI(static::getConnectionName())->get('keyStore')
+                    ->getKeyword(self::getBaseTableForCaller() . '.' . $column);
+            }
+        } catch (Exception $e) {
+            return [];
+        }
+
+        return $values;
+    }
+
+    /**
+     * Remove any cached keys in store.
+     *
+     * @return void
+     */
+    public static function close()
+    {
+        $mapping = self::getDataMappingForCaller();
+
+        $values = [];
+        try {
+            foreach ($mapping as $mapped => $column) {
+                if ($column === '*') {
+                    continue;
+                }
+
+                $values[$mapped] = static::getAPI(static::getConnectionName())->get('keyStore')
+                    ->setKeyword(self::getBaseTableForCaller() . '.' . $column, null);
+            }
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+
+    /**
      * Construct an external reference clause for the query.
      * Note: This will only work with the first result returned.
      *
-     * @param string $table The table to select from.
+     * @param string $table  The table to select from.
      * @param string $column The column to select within the table.
-     * @param array $where The array to filter the values from.
+     * @param array  $where  The array to filter the values from.
      *
      * @example Example usage: Update postcode where address Id is provided.
      *
@@ -275,7 +423,7 @@ abstract class BaseProvider implements APIDecoratorInterface
      */
     public static function rawSubSelect($table, $column, array $where)
     {
-        return static::getAPI()->subSelect($table, $column, $where);
+        return static::getAPI(static::getConnectionName())->subSelect($table, $column, $where);
     }
 
     /**
@@ -283,7 +431,7 @@ abstract class BaseProvider implements APIDecoratorInterface
      * Note: This will only work with the first result returned.
      *
      * @param string $column The column to select within the table.
-     * @param array $where The array to filter the values from.
+     * @param array  $where  The array to filter the values from.
      *
      * @example Example usage: Update postcode where address Id is provided.
      *
@@ -299,7 +447,7 @@ abstract class BaseProvider implements APIDecoratorInterface
     {
         $table = self::getBaseTableForCaller();
 
-        return static::getAPI()->subSelect(
+        return static::getAPI(static::getConnectionName())->subSelect(
             $table,
             self::getFieldMapping($column),
             self::resolveDataFieldMappings($where)
@@ -328,7 +476,7 @@ abstract class BaseProvider implements APIDecoratorInterface
     {
         $callingClass = get_called_class();
 
-        static::getAPI()->select(self::getBaseTableForCaller(), [
+        static::getAPI(static::getConnectionName())->select(self::getBaseTableForCaller(), [
             self::getFieldMapping(self::$savedSession[$callingClass]['key']) =>
             self::$savedSession[$callingClass]['value']
         ]);
@@ -348,8 +496,27 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
-     * @param array $indexes
-     * @param array $data
+     * Shortcut method for getKeyword.
+     *
+     * @param string $key
+     *
+     * @return string
+     */
+    public static function key($key)
+    {
+        return self::getKeyword($key);
+    }
+
+    /**
+     *
+     * @return string
+     */
+    public static function expandKeys($string)
+    {
+        return self::getApi()->get('keyStore')->parseKeywordsInString($string);
+    }
+
+    /**
      *
      * @return void
      */
@@ -375,12 +542,22 @@ abstract class BaseProvider implements APIDecoratorInterface
     public static function select(array $where)
     {
         self::ensureBaseTable();
-        static::getAPI()->select(self::getBaseTableForCaller(), self::resolveDataFieldMappings($where));
+
+        try {
+            $where = array_merge(static::getSelectDefaults($where), $where);
+        } catch (Exception $e) {
+            throw new DefaultValuesException(get_called_class(), $e->getMessage(), 'select');
+        }
+
+        static::getAPI(static::getConnectionName())->select(
+            self::getBaseTableForCaller(),
+            self::resolveDataFieldMappings($where)
+        );
     }
 
     /**
      * @param array $data The data set to insert. This method is protected and should be implemented
-     * by one your data modules, this is so you can provide more context around the action your taking.
+     *                    by one your data modules, this is so you can provide more context around the action your taking.
      *
      * @return int The insert Id.
      */
@@ -389,23 +566,29 @@ abstract class BaseProvider implements APIDecoratorInterface
         self::ensureBaseTable();
 
         $data = array_merge(self::getDefaultsForCaller($data), $data);
-        static::getAPI()->insert(self::getBaseTableForCaller(), self::resolveDataFieldMappings($data));
-        $id = static::getAPI()->getLastId();
+        try {
+            $data = array_merge(static::getInsertDefaults($data), $data);
+        } catch (Exception $e) {
+            throw new DefaultValuesException(get_called_class(), $e->getMessage(), 'insert');
+        }
+
+        static::getAPI(static::getConnectionName())->insert(self::getBaseTableForCaller(), self::resolveDataFieldMappings($data));
+        $id = static::getAPI(static::getConnectionName())->getLastId();
         static::postCreateHook($id, $data);
 
         return $id;
     }
 
     /**
-     * Since an update can cause chaos and affect other rows without immediately
+     * Since an update can cause chaos and affect other rows without immediate
      * implications, this method should be used from within a method exposed
      * by the data module with more context around what it intends to do.
      *
      * This method is protected and should be implemented
-     * by one your data modules, this is so you can provide more context around the action your taking.
+     * by one your data modules, this is so you can provide more context around the action you're taking.
      *
      * @param array $values The values data set to update with.
-     * @param array $where The selection criteria.
+     * @param array $where  The selection criteria.
      *
      * @return void
      */
@@ -413,7 +596,13 @@ abstract class BaseProvider implements APIDecoratorInterface
     {
         self::ensureBaseTable();
 
-        static::getAPI()->update(
+        try {
+            $values = array_merge(static::getUpdateDefaults($values), $values);
+        } catch (Exception $e) {
+            throw new DefaultValuesException(get_called_class(), $e->getMessage(), 'update');
+        }
+
+        static::getAPI(static::getConnectionName())->update(
             self::getBaseTableForCaller(),
             self::resolveDataFieldMappings($values),
             self::resolveDataFieldMappings($where)
@@ -432,40 +621,46 @@ abstract class BaseProvider implements APIDecoratorInterface
     {
         self::ensureBaseTable();
 
-        static::getAPI()->delete(self::getBaseTableForCaller(), self::resolveDataFieldMappings($where));
+        try {
+            $where = array_merge(static::getDeleteDefaults($where), $where);
+        } catch (Exception $e) {
+            throw new DefaultValuesException(get_called_class(), $e->getMessage(), 'delete');
+        }
+
+        static::getAPI(static::getConnectionName())->delete(
+            self::getBaseTableForCaller(),
+            self::resolveDataFieldMappings($where)
+        );
     }
 
     /**
-     * @param array $where
      *
      * @return string
      */
     public static function assertExists(array $where)
     {
         self::ensureBaseTable();
-        static::getApi()->assertExists(self::getBaseTableForCaller(), self::resolveDataFieldMappings($where));
+        static::getApi(static::getConnectionName())->assertExists(self::getBaseTableForCaller(), self::resolveDataFieldMappings($where));
     }
 
     /**
-     * @param array $where
      *
      * @return string
      */
     public static function assertNotExists(array $where)
     {
         self::ensureBaseTable();
-        static::getApi()->assertNotExists(self::getBaseTableForCaller(), self::resolveDataFieldMappings($where));
+        static::getApi(static::getConnectionName())->assertNotExists(self::getBaseTableForCaller(), self::resolveDataFieldMappings($where));
     }
 
     /**
-     * @param array $data
      *
      * @return Representations\Query
      */
     public static function getSampleInsertQuery(array $data = [])
     {
         self::ensureBaseTable();
-        return BaseProvider::getApi()->getSampleInsertQuery(
+        return BaseProvider::getApi(static::getConnectionName())->getSampleInsertQuery(
             self::getBaseTableForCaller(),
             self::resolveDataFieldMappings($data)
         );
@@ -483,7 +678,7 @@ abstract class BaseProvider implements APIDecoratorInterface
     protected static function truncate($table = null)
     {
         $table = self::getTable($table);
-        static::getAPI()->delete($table, [
+        static::getAPI(static::getConnectionName())->delete($table, [
             'id' => '!NULL'
         ]);
     }
@@ -543,17 +738,18 @@ abstract class BaseProvider implements APIDecoratorInterface
      * Special Method: Use this method to create auxiliary data off the initial create. This is suitable
      * for creating data where the tables are fragmented.
      *
-     * @param int $id The id of the created record.
+     * @param int   $id   The id of the created record.
      * @param array $data The data that was originally passed to create.
      *
      * @return void
      */
-    protected static function postCreateHook($id, array $data) {}
+    protected static function postCreateHook($id, array $data)
+    {
+    }
 
     /**
      * Process seed data insertion.
      *
-     * @param array $seedData
      *
      * @return void
      */
@@ -572,7 +768,7 @@ abstract class BaseProvider implements APIDecoratorInterface
                 throw new Exception("Provided data '$individualSeedData' invalid, must be an array.");
             }
 
-            static::getAPI()->insert($table, self::resolveDataFieldMappings($individualSeedData));
+            static::getAPI(static::getConnectionName())->insert($table, self::resolveDataFieldMappings($individualSeedData));
         }
     }
 
@@ -601,6 +797,6 @@ abstract class BaseProvider implements APIDecoratorInterface
      */
     private static function implementsInterface($class, $interface)
     {
-        return (in_array($interface, class_implements($class)));
+        return in_array($interface, class_implements($class));
     }
 }

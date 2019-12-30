@@ -15,7 +15,7 @@ class Initializer implements ContextInitializer
     /**
      * @var array
      */
-    private $connection = [];
+    private $connections = [];
 
     /**
      * @var array
@@ -23,15 +23,23 @@ class Initializer implements ContextInitializer
     private $dataModMapping = [];
 
     /**
+     * @var array
+     */
+    private $domainModMapping = [];
+
+    /**
      * @param array $connection
      * @param array $dataModMapping
+     * @param array $domainModMapping
      */
     public function __construct(
-        array $connection = [],
-        array $dataModMapping = []
+        array $connections = [],
+        array $dataModMapping = [],
+        array $domainModMapping = []
     ) {
-        $this->connection = $connection;
+        $this->connections = $connections;
         $this->dataModMapping = $dataModMapping;
+        $this->domainModMapping = $domainModMapping;
     }
 
     /**
@@ -40,25 +48,10 @@ class Initializer implements ContextInitializer
     public function initializeContext(Context $context)
     {
         if ($context instanceof DataModSQLContext) {
-            BaseProvider::setCredentials([
-                'engine' => $this->getConfig('engine'),
-                'dbname' => $this->getConfig('dbname'),
-                'schema' => $this->getConfig('schema'),
-                'prefix' => $this->getConfig('prefix'),
-                'host' => $this->getConfig('host'),
-                'port' => $this->getConfig('port'),
-                'username' => $this->getConfig('username'),
-                'password' => $this->getConfig('password')
-            ]);
+            BaseProvider::setCredentials($this->connections);
 
             $context::setDataModMapping($this->dataModMapping);
-        }
-    }
-
-    private function getConfig($key)
-    {
-        if (isset($this->connection[$key])) {
-            return $this->connection[$key];
+            $context::setDomainModMapping($this->domainModMapping);
         }
     }
 }

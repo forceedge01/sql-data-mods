@@ -3,7 +3,7 @@
 namespace DataMod;
 
 use Genesis\SQLExtensionWrapper\BaseProvider;
-use Genesis\SQLExtensionWrapper\DataModInterface;
+use Genesis\SQLExtensionWrapper\Contract\DataModInterface;
 
 /**
  * Address class.

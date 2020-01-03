@@ -3,6 +3,7 @@
 use Behat\Behat\Context\Context;
 use Behat\MinkExtension\Context\MinkAwareContext;
 use Behat\Mink\Mink;
+use DataMod\Address;
 use DataMod\User;
 
 /**
@@ -31,5 +32,30 @@ class FeatureContext implements Context, MinkAwareContext
         $age = User::getValue('age');
 
         $this->mink->assertSession()->pageTextContains('age: ' . $age . ' years');
+    }
+
+    /**
+     * @Given I have the user fixture
+     */
+    public function iHaveTheUserFixture()
+    {
+        User::delete(['id' => '!NULL']);
+
+        User::createFixture([
+            'name' => 'Wahab Qureshi',
+            'date of birth' => '10-05-1989',
+            'age' => 29,
+            'hobby' => 'swimming',
+        ]);
+    }
+
+    /**
+     * @Given I have the address fixture
+     */
+    public function iHaveTheAddressFixture()
+    {
+        Address::delete(['id' => '!NULL']);
+
+        Address::createFixture();
     }
 }

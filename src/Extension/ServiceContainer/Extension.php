@@ -5,6 +5,7 @@ namespace Genesis\SQLExtensionWrapper\Extension\ServiceContainer;
 use Behat\Behat\Context\ServiceContainer\ContextExtension;
 use Behat\Testwork\ServiceContainer\Extension as ExtensionInterface;
 use Behat\Testwork\ServiceContainer\ExtensionManager;
+use Genesis\SQLExtensionWrapper\BaseProvider;
 use Genesis\SQLExtensionWrapper\Extension\Initializer\Initializer;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -117,12 +118,12 @@ class Extension implements ExtensionInterface
 
         $container->setParameter('genesis.sqlapiwrapper.config.connections', $config['connections']);
 
-        if (! isset($config['dataModMapping'])) {
+        if (!isset($config['dataModMapping'])) {
             $config['dataModMapping'] = [];
         }
         $container->setParameter('genesis.sqlapiwrapper.config.datamodmapping', $config['dataModMapping']);
 
-        if (! isset($config['domainModMapping'])) {
+        if (!isset($config['domainModMapping'])) {
             $config['domainModMapping'] = [];
         }
         $container->setParameter('genesis.sqlapiwrapper.config.domainmodmapping', $config['domainModMapping']);
@@ -134,6 +135,7 @@ class Extension implements ExtensionInterface
         ]);
         $definition->addTag(ContextExtension::INITIALIZER_TAG);
         $container->setDefinition(self::CONTEXT_INITIALISER, $definition);
+        BaseProvider::setCredentials($config['connections']);
     }
 
     /**

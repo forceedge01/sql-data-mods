@@ -129,7 +129,6 @@ class Extension implements ExtensionInterface
         $container->setParameter('genesis.sqlapiwrapper.config.domainmodmapping', $config['domainModMapping']);
 
         $definition = new Definition(Initializer::class, [
-            '%genesis.sqlapiwrapper.config.connections%',
             '%genesis.sqlapiwrapper.config.datamodmapping%',
             '%genesis.sqlapiwrapper.config.domainmodmapping%',
         ]);

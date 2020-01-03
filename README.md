@@ -7,9 +7,9 @@ Release details:
 ----------------
 Major: Allow multiple data sources to be defined.
 
-Minor: Allow aliasing optionally in data mods.
+Minor: Allow data mods to be used by PHP without enabling the context file.
 
-Patch: Delete call in create fixture considers default values set.
+Patch: NA.
 
 Tools provided by this package:
 --------------------------------

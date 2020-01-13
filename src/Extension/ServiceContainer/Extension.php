@@ -3,13 +3,16 @@
 namespace Genesis\SQLExtensionWrapper\Extension\ServiceContainer;
 
 use Behat\Behat\Context\ServiceContainer\ContextExtension;
+use Behat\Testwork\Cli\ServiceContainer\CliExtension;
 use Behat\Testwork\ServiceContainer\Extension as ExtensionInterface;
 use Behat\Testwork\ServiceContainer\ExtensionManager;
 use Genesis\SQLExtensionWrapper\BaseProvider;
+use Genesis\SQLExtensionWrapper\DebugSQLCli;
 use Genesis\SQLExtensionWrapper\Extension\Initializer\Initializer;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 
 /**
  * Extension class.
@@ -135,6 +138,17 @@ class Extension implements ExtensionInterface
         $definition->addTag(ContextExtension::INITIALIZER_TAG);
         $container->setDefinition(self::CONTEXT_INITIALISER, $definition);
         BaseProvider::setCredentials($config['connections']);
+        $this->addDebugCommand($container);
+    }
+
+    private function addDebugCommand($container)
+    {
+        $definition = new Definition(
+            DebugSQLCli::class,
+            array(new Reference(self::CONTEXT_INITIALISER))
+        );
+        $definition->addTag(CliExtension::CONTROLLER_TAG, array('priority' => 1));
+        $container->setDefinition(CliExtension::CONTROLLER_TAG . '.genesis.debug', $definition);
     }
 
     /**

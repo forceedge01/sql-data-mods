@@ -7,7 +7,7 @@ Release details:
 ----------------
 Major: Allow multiple data sources to be defined.
 
-Minor: Allow data mods to be used by PHP without enabling the context file.
+Minor: CLI commands to facilitate debugging.
 
 Patch: NA.
 
@@ -18,6 +18,16 @@ Tools provided by this package:
 file and you are good to go.
 - Decorated API BaseProvider Class - for advanced and easy integration with data modules.
 - DataRetriever class - Retrieve data in a robust way and make a solid foundation for your test framework quickly.
+- CLI commands to facilitate debugging.
+
+CLI Commands:
+-------------
+
+Debug sql only:
+- To view sql statements executed by the extension use `--debug-sql` flag.
+
+Debug all:
+- To view all activity along with executed statements use `--debug-sql-all` flag.
 
 DataModSQLContext
 ------------------

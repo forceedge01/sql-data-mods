@@ -1,12 +1,20 @@
 default:
   suites:
     default:
+      paths:
+        - %paths.base%/features/defaultSuite
       contexts:
         - FeatureContext
         - FailAid\Context\FailureContext
         - Behat\MinkExtension\Context\MinkContext
-        - Genesis\SQLExtensionWrapper\DataModSQLContext:
-            debug: 2
+        - Genesis\SQLExtensionWrapper\DataModSQLContext
+    withoutContext:
+      paths:
+        - %paths.base%/features/withoutContextSuite
+      contexts:
+        - FeatureContext
+        - FailAid\Context\FailureContext
+        - Behat\MinkExtension\Context\MinkContext
   extensions:
     Cjm\Behat\LocalWebserverExtension:
       host : localhost   # defaults to 'localhost'

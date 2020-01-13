@@ -2,7 +2,7 @@
     "name": "genesis/sql-data-mods",
     "type": "behat-extension",
     "description": "SQL/PDO extension - extending capabilities provided by the original SQL API extension.",
-    "keywords": ["web", "test", "browser", "pdo", "behat", "sql", "testing", "bdd", "database", "mysql", "data"],
+    "keywords": ["fixture", "behat-fixture", "db-fixture", "test-data", "behat-data", "test", "pdo", "behat", "sql", "testing", "bdd", "database", "mysql", "data"],
     "license": "MIT",
     "authors": [
         {

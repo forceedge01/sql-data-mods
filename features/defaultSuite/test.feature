@@ -3,14 +3,16 @@ Feature:
     As a maintainer
     I want to try it out in real time as an integration test
 
+    Background:
+        Given I do not have any "Address" fixtures
+        And I do not have a "User" fixture
+
     Scenario: Test it out
         Given I am on "/"
-        And I do not have any "Address" fixtures
-        And I do not have a "User" fixture
         And I have a "User" fixture
-        And I have a "User" fixture with the following data set:
-            | name          | Wahab Qureshi |
+        And I have a "User" fixture with the following data set having unique "name":
             | date of birth | 10-05-1989    |
+            | name          | Wahab Qureshi |
             | age           | 29            |
             | hobby         | swimming      |
         And I have an "Address" fixture
@@ -29,6 +31,18 @@ Feature:
             | date of birth | 10-05-1989    |
             | age           | 29            |
             | hobby         | swimming      |
+        And I have additional "User" fixture with the following data set:
+            | name          | Sabhat Qureshi |
+            | date of birth | 01-04-1985     |
+            | age           | 10             |
+        And I have multiple "User" fixtures with the following data set having unique "age":
+            | name           | date of birth | age |
+            | Uswa Qureshi   | 25-07-2016    | 3   |
+            | Meeram Qureshi | 07-11-2017    | 2   |
+        And I have multiple "User" fixtures with the following data sets:
+            | name           | date of birth | age |
+            | Jawad Qureshi  | 01-01-1996    | 20  |
+            | Eisa Qureshi   | 13-12-2014    | 5   |
 
         When I reload the page
         Then I should see "name: Wahab Qureshi"

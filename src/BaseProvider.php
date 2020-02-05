@@ -45,8 +45,7 @@ abstract class BaseProvider implements APIDecoratorInterface
         }
     }
 
-    /**
-     */
+
     private static function instantiateApi(array $credentials)
     {
         return new Context\API(
@@ -72,7 +71,7 @@ abstract class BaseProvider implements APIDecoratorInterface
      *
      * Override if you want to use a different version of the API.
      *
-     * @param  Interfaces\APIInterface $connection
+     * @param Interfaces\APIInterface $connection
      *
      * @return Context\Api
      */
@@ -510,6 +509,7 @@ abstract class BaseProvider implements APIDecoratorInterface
     /**
      *
      * @return string
+     * @param  mixed  $string
      */
     public static function expandKeys($string)
     {

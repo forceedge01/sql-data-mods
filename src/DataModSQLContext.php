@@ -34,8 +34,8 @@ class DataModSQLContext implements Context
 
     /**
      * @param boolean $debug
-     * @param string  $userUniqueRef  Will be appended to new data created to separate data based on users.
-     *                                Best to limit it to 2 characters.
+     * @param string  $userUniqueRef Will be appended to new data created to separate data based on users.
+     *                               Best to limit it to 2 characters.
      */
     public function __construct($debug = false, $userUniqueRef = null)
     {
@@ -50,6 +50,7 @@ class DataModSQLContext implements Context
      * @BeforeScenario
      *
      * @return void
+     * @param  mixed $beforeScenario
      */
     public function clearStore($beforeScenario)
     {
@@ -61,6 +62,8 @@ class DataModSQLContext implements Context
      * @Given I have a/an :domainModRef domain fixture
      *
      * @return string
+     * @param  mixed      $domainModRef
+     * @param  null|mixed $uniqueColumn
      */
     public function givenIADomainFixture($domainModRef, TableNode $where = null)
     {
@@ -97,6 +100,7 @@ class DataModSQLContext implements Context
      * @Given I have additional :domainModRef domain fixture
      *
      * @return string
+     * @param  mixed  $domainModRef
      */
     public function givenIHaveAdditionalDomainFixture($domainModRef, TableNode $where = null)
     {
@@ -130,13 +134,15 @@ class DataModSQLContext implements Context
     /**
      * @Given I have a/an :dataModRef fixture
      * @Given I have a/an :dataModRef fixture with the following data set:
+     * @Given I have a/an :dataModRef fixture with the following data set having unique :uniqueColumn:
      *
      * Note: The first row value in the TableNode is considered the unique key.
      *
-     * @param string    $dataModRef
-     * @param TableNode $where
+     * @param string     $dataModRef
+     * @param TableNode  $where
+     * @param null|mixed $uniqueColumn
      */
-    public function givenIACreateFixture($dataModRef, TableNode $where = null)
+    public function givenIACreateFixture($dataModRef, $uniqueColumn = null, TableNode $where = null)
     {
         $dataMod = $this->getDataMod($dataModRef);
 
@@ -148,7 +154,7 @@ class DataModSQLContext implements Context
 
         $dataMod::createFixture(
             $dataSet,
-            $uniqueKey
+            $uniqueColumn ? $uniqueColumn : $uniqueKey
         );
     }
 
@@ -225,12 +231,14 @@ class DataModSQLContext implements Context
 
     /**
      * @Given I have multiple :dataModRef fixtures with the following data set(s):
+     * @Given I have multiple :dataModRef fixtures with the following data set(s) having unique :uniqueColumn:
      *
      * Note: The first column value in the TableNode is considered the unique key.
      *
-     * @param string    $dataModRef
+     * @param string     $dataModRef
+     * @param null|mixed $uniqueColumn
      */
-    public function givenIMultipleCreateFixtures($dataModRef, TableNode $where)
+    public function givenIMultipleCreateFixtures($dataModRef, $uniqueColumn = null, TableNode $where = null)
     {
         $dataMod = $this->getDataMod($dataModRef);
         $dataSets = DataRetriever::transformTableNodeToMultiDataSets($where);
@@ -244,7 +252,7 @@ class DataModSQLContext implements Context
 
             $dataMod::createFixture(
                 $dataSet,
-                $uniqueKey
+                $uniqueColumn ? $uniqueColumn : $uniqueKey
             );
         }
 
@@ -256,7 +264,7 @@ class DataModSQLContext implements Context
      *
      * Note: Additional calls do not delete data first, only add them.
      *
-     * @param string    $dataModRef
+     * @param string $dataModRef
      */
     public function givenIHaveAdditionalMultipleCreateFixtures($dataModRef, TableNode $where)
     {
@@ -275,6 +283,7 @@ class DataModSQLContext implements Context
     /**
      * @Given I do not have a/any :dataModRef fixture(s)
      * @Given I do not have a/any :dataModRef fixture(s) with the following data set:
+     * @param mixed $dataModRef
      */
     public function iDoNotHaveAFixtureWithTheFollowingDataSet($dataModRef, TableNode $where = null)
     {
@@ -292,6 +301,7 @@ class DataModSQLContext implements Context
      *
      * @Then I should have a :dataModRef
      * @Then I should have a :dataModRef with the following data set:
+     * @param mixed $dataModRef
      */
     public function iShouldHaveAWithTheFollowingDataSet($dataModRef, TableNode $where = null)
     {
@@ -309,6 +319,7 @@ class DataModSQLContext implements Context
      *
      * @Then I should not have a :dataModRef
      * @Then I should not have a :dataModRef with the following data set:
+     * @param mixed $dataModRef
      */
     public function iShouldNotHaveAWithTheFollowingDataSet($dataModRef, TableNode $where = null)
     {
@@ -323,6 +334,7 @@ class DataModSQLContext implements Context
 
     /**
      * @Given I save the id as :key
+     * @param mixed $key
      */
     public function iSaveTheIdAs($key)
     {
@@ -331,8 +343,7 @@ class DataModSQLContext implements Context
         return $this;
     }
 
-    /**
-     */
+
     private static function setDataModMappingFromBehatYamlFile(array $dataModMapping = array())
     {
         if (! $dataModMapping) {
@@ -342,15 +353,13 @@ class DataModSQLContext implements Context
         self::setDataModMapping($dataModMapping);
     }
 
-    /**
-     */
+
     public static function setDataModMapping(array $mapping)
     {
         self::$dataModMapping = $mapping;
     }
 
-    /**
-     */
+
     public static function setDomainModMapping(array $mapping)
     {
         self::$domainModMapping = $mapping;

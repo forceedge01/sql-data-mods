@@ -7,7 +7,7 @@ Release details:
 ----------------
 Major: Allow multiple data sources to be defined.
 
-Minor: CLI commands to facilitate debugging.
+Minor: Allow uniqueColumn to be specified from the step defintion rather than assuming first column.
 
 Patch: NA.
 

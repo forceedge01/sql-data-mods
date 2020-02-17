@@ -1,7 +1,6 @@
 # SQL Data Mods [ ![Codeship Status for forceedge01/sql-api-wrapper](https://app.codeship.com/projects/96302210-ad45-0135-72c6-56f00403434d/status?branch=master)](https://app.codeship.com/projects/257181)
 
-The idea is to declutter the framework by separating logic that relates to data manipulation in the database vs interactions on
-the web interface. This extension provides a framework where you will configure how your database tables will be interacted with and provide a very easy context class that leverages this configuration to manipulate the data for you.
+Need fixture data but seed causing headaches? Create fixture seed data on the fly, keep them visible in your scenarios, auto generate data and deal with complex data relationships. 
 
 Release details:
 ----------------

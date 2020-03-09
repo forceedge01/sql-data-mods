@@ -6,6 +6,7 @@ use Exception;
 use Genesis\SQLExtensionWrapper\BaseProvider;
 use Genesis\SQLExtension\Context\Interfaces\APIInterface;
 use Genesis\SQLExtension\Context\Interfaces\KeyStoreInterface;
+use PHPUnit\Framework\Assert;
 use PHPUnit_Framework_TestCase;
 use ReflectionClass;
 use ReflectionProperty;
@@ -568,6 +569,26 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
 
         // Execute
         $this->invokeMethod('select', [$where]);
+    }
+
+    /**
+     * testSelect Test that count executes as expected.
+     */
+    public function testCount()
+    {
+        $where = ['id' => 5];
+
+        // Prepare / Mock
+        TestClass::$api->expects($this->once())
+            ->method('count')
+            ->with('test.table', $where + ['forename' => 'Abdul'])
+            ->willReturn(7);
+
+        // Execute
+        $result = TestClass::count($where);
+
+        Assert::assertInternalType('int', $result);
+        Assert::assertSame(7, $result);
     }
 
     /**

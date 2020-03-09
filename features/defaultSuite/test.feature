@@ -23,6 +23,10 @@ Feature:
         And I should see the users age on the page
         And I should see text matching "address: behat-[0-9]+-test-string"
         And I take a screenshot
+        And I should have 2 "User" count
+        And I should have 1 "User" count with the following data set:
+            | date of birth | 10-05-1989    |
+            | name          | Wahab Qureshi |
 
     Scenario: Use DomainMod
         Given I am on "/"
@@ -40,9 +44,9 @@ Feature:
             | Uswa Qureshi   | 25-07-2016    | 3   |
             | Meeram Qureshi | 07-11-2017    | 2   |
         And I have multiple "User" fixtures with the following data sets:
-            | name           | date of birth | age |
-            | Jawad Qureshi  | 01-01-1996    | 20  |
-            | Eisa Qureshi   | 13-12-2014    | 5   |
+            | name          | date of birth | age |
+            | Jawad Qureshi | 01-01-1996    | 20  |
+            | Eisa Qureshi  | 13-12-2014    | 5   |
 
         When I reload the page
         Then I should see "name: Wahab Qureshi"

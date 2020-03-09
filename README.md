@@ -2,11 +2,15 @@
 
 Need fixture data but seed causing headaches? Create fixture seed data on the fly, keep them visible in your scenarios, auto generate data and deal with complex data relationships. 
 
+**Find example usage in the features folder.**
+
 Release details:
 ----------------
 Major: Allow multiple data sources to be defined.
 
-Minor: Allow uniqueColumn to be specified from the step defintion rather than assuming first column.
+Minor: 
+- Allow uniqueColumn to be specified from the step definition rather than assuming first column.
+- Get count through dataMod::count() call.
 
 Patch: NA.
 

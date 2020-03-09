@@ -7,6 +7,7 @@ use Behat\Gherkin\Node\TableNode;
 use Genesis\SQLExtensionWrapper\Exception\DataModNotFoundException;
 use Genesis\SQLExtensionWrapper\Exception\DomainModNotFoundException;
 use Genesis\SQLExtension\Context\Debugger;
+use UnexpectedValueException;
 
 /**
  * DecoratedSQLContext class. This class gives you context step definitions out of the box that work with your
@@ -297,7 +298,7 @@ class DataModSQLContext implements Context
     }
 
     /**
-     * Useful when testing against API's. Not recommended to be used else where.
+     * Useful when testing against API's etc.
      *
      * @Then I should have a :dataModRef
      * @Then I should have a :dataModRef with the following data set:
@@ -315,7 +316,32 @@ class DataModSQLContext implements Context
     }
 
     /**
-     * Useful when testing against API's. Not recommended to be used else where.
+     * Useful when testing against API's etc.
+     *
+     * @Then I should have :expected :dataModRef count
+     * @Then I should have :expected :dataModRef count with the following data set:
+     */
+    public function iShouldHaveCountTheFollowingDataSet($expected, $dataModRef, TableNode $where = null)
+    {
+        $dataMod = $this->getDataMod($dataModRef);
+        $dataSet = [];
+        if ($where) {
+            $dataSet = DataRetriever::transformTableNodeToSingleDataSet($where);
+        }
+
+        $actual = $dataMod::count($dataSet);
+        if ((int) $expected !== $actual) {
+            throw new UnexpectedValueException(sprintf(
+                '%s data mod - Expected count "%d", got "%d"',
+                $dataModRef,
+                $expected,
+                $actual
+            ));
+        }
+    }
+
+    /**
+     * Useful when testing against API's etc.
      *
      * @Then I should not have a :dataModRef
      * @Then I should not have a :dataModRef with the following data set:

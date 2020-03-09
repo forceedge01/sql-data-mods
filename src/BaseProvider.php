@@ -634,6 +634,27 @@ abstract class BaseProvider implements APIDecoratorInterface
     }
 
     /**
+     * @param array $where
+     *
+     * @return int
+     */
+    public static function count(array $where = [])
+    {
+        self::ensureBaseTable();
+
+        try {
+            $where = array_merge(static::getSelectDefaults($where), $where);
+        } catch (Exception $e) {
+            throw new DefaultValuesException(get_called_class(), $e->getMessage(), 'select');
+        }
+
+        return static::getAPI(static::getConnectionName())->count(
+            self::getBaseTableForCaller(),
+            self::resolveDataFieldMappings($where)
+        );
+    }
+
+    /**
      *
      * @return string
      */
@@ -675,7 +696,7 @@ abstract class BaseProvider implements APIDecoratorInterface
      *
      * @return void
      */
-    protected static function truncate($table = null)
+    public static function truncate($table = null)
     {
         $table = self::getTable($table);
         static::getAPI(static::getConnectionName())->delete($table, [

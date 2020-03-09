@@ -10,7 +10,7 @@ Major: Allow multiple data sources to be defined.
 
 Minor: 
 - Allow uniqueColumn to be specified from the step definition rather than assuming first column.
-- Get count through dataMod::count() call.
+- Get count through dataMod::count() call, truncate call now made public.
 
 Patch: NA.
 

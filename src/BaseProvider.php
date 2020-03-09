@@ -696,7 +696,7 @@ abstract class BaseProvider implements APIDecoratorInterface
      *
      * @return void
      */
-    protected static function truncate($table = null)
+    public static function truncate($table = null)
     {
         $table = self::getTable($table);
         static::getAPI(static::getConnectionName())->delete($table, [

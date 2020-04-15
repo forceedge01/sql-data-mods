@@ -33,5 +33,8 @@
         "genesis/behat-fail-aid": "Give your failures clarity and save time.",
         "genesis/test-routing": "Simplistic routing that can extend main app routing for testing purposes.",
         "genesis/db-backup-restore": "Quickly backup and restore your database."
+    },
+    "scripts": {
+        "tests": "./vendor/bin/phpunit -c tests && ./vendor/bin/behat --format=progress"
     }
 }

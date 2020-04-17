@@ -22,6 +22,7 @@ file and you are good to go.
 - Decorated API BaseProvider Class - for advanced and easy integration with data modules.
 - DataRetriever class - Retrieve data in a robust way and make a solid foundation for your test framework quickly.
 - CLI commands to facilitate debugging.
+- Auto generation of data mod files with or without database support.
 
 CLI Commands:
 -------------
@@ -31,6 +32,11 @@ Debug sql only:
 
 Debug all:
 - To view all activity along with executed statements use `--debug-sql-all` flag.
+
+Generate data mod:
+- To generate a simple base data mod use `--dm-generate <table>` flag.
+- To generate with databse support use `--dm-generate <table> --dm-connection` flag.
+- You may want to explore the `--dm-path` and `--dm-namespace` flags from the help menu as well.
 
 DataModSQLContext
 ------------------

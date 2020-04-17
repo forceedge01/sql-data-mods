@@ -1,6 +1,6 @@
 <?php
 
-namespace Genesis\SQLExtensionWrapper;
+namespace Genesis\SQLExtensionWrapper\Command;
 
 use Behat\Testwork\Cli\Controller;
 use Genesis\SQLExtensionWrapper\Service\DataModGeneratorService;

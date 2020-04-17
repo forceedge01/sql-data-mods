@@ -4,6 +4,7 @@ namespace Genesis\SQLExtensionWrapper;
 
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\TableNode;
+use Exception;
 use Genesis\SQLExtensionWrapper\Exception\DataModNotFoundException;
 use Genesis\SQLExtensionWrapper\Exception\DomainModNotFoundException;
 use Genesis\SQLExtension\Context\Debugger;

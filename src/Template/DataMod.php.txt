@@ -1,0 +1,67 @@
+<?php
+
+namespace DataMod;
+
+use Genesis\SQLExtensionWrapper\BaseProvider;
+use Genesis\SQLExtensionWrapper\Contract\DataModInterface;
+
+class {DATAMOD} extends BaseProvider implements DataModInterface
+{
+    /**
+     * @return string
+     */
+    public static function getBaseTable()
+    {
+        return '{TABLE}';
+    }
+
+    /**
+     * @return array
+     */
+    public static function getDataMapping()
+    {
+        return [
+{FIELDS}
+        ];
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return array
+     */
+    public static function getInsertDefaults(array $data)
+    {
+        return $data;
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return array
+     */
+    public static function getSelectDefaults(array $data)
+    {
+        return $data;
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return array
+     */
+    public static function getDeleteDefaults(array $data)
+    {
+        return $data;
+    }
+
+    /**
+     * @param array $data
+     *
+     * @return array
+     */
+    public static function getUpdateDefaults(array $data)
+    {
+        return $data;
+    }
+}

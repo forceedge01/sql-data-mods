@@ -7,7 +7,8 @@ use Behat\Testwork\Cli\ServiceContainer\CliExtension;
 use Behat\Testwork\ServiceContainer\Extension as ExtensionInterface;
 use Behat\Testwork\ServiceContainer\ExtensionManager;
 use Genesis\SQLExtensionWrapper\BaseProvider;
-use Genesis\SQLExtensionWrapper\DebugSQLCli;
+use Genesis\SQLExtensionWrapper\Command\Generate;
+use Genesis\SQLExtensionWrapper\Command\DebugSQLCli;
 use Genesis\SQLExtensionWrapper\Extension\Initializer\Initializer;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -139,6 +140,17 @@ class Extension implements ExtensionInterface
         $container->setDefinition(self::CONTEXT_INITIALISER, $definition);
         BaseProvider::setCredentials($config['connections']);
         $this->addDebugCommand($container);
+        $this->addGenerateCommand($container);
+    }
+
+    private function addGenerateCommand($container)
+    {
+        $definition = new Definition(
+            Generate::class,
+            array(new Reference(self::CONTEXT_INITIALISER))
+        );
+        $definition->addTag(CliExtension::CONTROLLER_TAG, array('priority' => 1));
+        $container->setDefinition(CliExtension::CONTROLLER_TAG . '.genesis.generate', $definition);
     }
 
     private function addDebugCommand($container)

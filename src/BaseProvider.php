@@ -55,6 +55,11 @@ abstract class BaseProvider implements APIDecoratorInterface
         );
     }
 
+    public static function getDataModForTable($table)
+    {
+        return str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', strtolower($table))));
+    }
+
     /**
      * @overridable - If you've defined multiple connections, you can specify which connection to use for each of your
      * data mods.

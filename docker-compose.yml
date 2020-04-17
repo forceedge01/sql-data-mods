@@ -1,9 +1,23 @@
 version: '3'
 
 services:
+  install:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    volumes:
+      - .:/app
   test:
     build:
       dockerfile: Dockerfile
       context: .
     volumes:
       - .:/app
+    command: ./vendor/bin/behat --dm-generate abc_123 --dm-generate user_address --dm-generate user-address_state
+  test-advanced:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    volumes:
+      - .:/app
+    command: ./vendor/bin/behat --dm-generate User --dm-generate Address --dm-connection=0

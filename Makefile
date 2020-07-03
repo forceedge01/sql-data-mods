@@ -1,4 +1,4 @@
-install: vendor
+vendor:
 	docker-compose run install
 
 .PHONY: test

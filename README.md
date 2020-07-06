@@ -34,8 +34,8 @@ Debug all:
 - To view all activity along with executed statements use `--debug-sql-all` flag.
 
 Generate data mod:
-- To generate a simple base data mod use `--dm-generate <table>` flag.
-- To generate with databse support use `--dm-generate <table> --dm-connection` flag.
+- To generate a simple base data mod use `--dm-generate <comma-separated-tables>` flag.
+- To generate with database support use `--dm-generate=<comma-separated-tables> --dm-connection=<connectionName>` flag.
 - You may want to explore the `--dm-path` and `--dm-namespace` flags from the help menu as well.
 
 DataModSQLContext

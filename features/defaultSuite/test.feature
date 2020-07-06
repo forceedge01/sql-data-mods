@@ -27,6 +27,9 @@ Feature:
         And I should have 1 "User" count with the following data set:
             | date of birth | 10-05-1989    |
             | name          | Wahab Qureshi |
+        And I do not have the following fixtures:
+            | Address |
+            | User    |
 
     Scenario: Use DomainMod
         Given I am on "/"

@@ -64,6 +64,7 @@ class Extension implements ExtensionInterface
     {
         $builder
             ->children()
+                ->scalarNode('keyStore')->defaultValue('\Genesis\SQLExtension\Context\LocalKeyStore')->end()
                 ->arrayNode('connection')
                     ->setDeprecated('Use "connections" configuration instead.')
                     ->children()
@@ -138,6 +139,7 @@ class Extension implements ExtensionInterface
         ]);
         $definition->addTag(ContextExtension::INITIALIZER_TAG);
         $container->setDefinition(self::CONTEXT_INITIALISER, $definition);
+        BaseProvider::setKeyStore($config['keyStore']);
         BaseProvider::setCredentials($config['connections']);
         $this->addDebugCommand($container);
         $this->addGenerateCommand($container);

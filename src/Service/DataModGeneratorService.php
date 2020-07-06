@@ -29,7 +29,13 @@ class DataModGeneratorService
             }
 
             $fields = self::getFieldsAsString($table, $api);
-            $contents = TemplateService::replaceTemplateVars($table, $namespace, $templateFile, $fields);
+            $contents = TemplateService::replaceTemplateVars(
+                $table,
+                $namespace,
+                $templateFile,
+                $fields,
+                $connection
+            );
 
             file_put_contents(
                 $filename,
@@ -53,8 +59,18 @@ class DataModGeneratorService
 
     private static function getColumnsAsArray($table, $api)
     {
-        $primaryKey = $api->get('dbManager')->getPrimaryKeyForTable(null, null, $table);
-        $columns = $api->get('dbManager')->getTableColumns(null, null, $table);
+        $params = $api->get('dbManager')->getParams();
+
+        $primaryKey = $api->get('dbManager')->getPrimaryKeyForTable(
+            $params['DBNAME'],
+            $params['DBSCHEMA'],
+            $table
+        );
+        $columns = $api->get('dbManager')->getTableColumns(
+            $params['DBNAME'],
+            $params['DBSCHEMA'],
+            $table
+        );
 
         return [$primaryKey, $columns];
     }

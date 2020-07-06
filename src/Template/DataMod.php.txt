@@ -6,7 +6,7 @@ use Genesis\SQLExtensionWrapper\BaseProvider;
 use Genesis\SQLExtensionWrapper\Contract\DataModInterface;
 
 class {{DATAMOD}} extends BaseProvider implements DataModInterface
-{
+{{{CONNECTION_METHOD}}
     /**
      * @return string
      */

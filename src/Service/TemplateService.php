@@ -11,20 +11,40 @@ class TemplateService
         return file_get_contents(__DIR__ . '/../Template/DataMod.php.txt');
     }
 
-    public static function replaceTemplateVars($table, $namespace, $contents, $fields = null)
+    public static function replaceTemplateVars($table, $namespace, $contents, $fields = null, $connection = null)
     {
         return str_replace([
             '{{DATAMOD}}',
             '{{TABLE}}',
             '{{NAMESPACE}}',
-            '{{FIELDS}}'
+            '{{FIELDS}}',
+            '{{CONNECTION_METHOD}}'
         ], [
             BaseProvider::getDataModForTable($table),
             $table,
             $namespace,
-            $fields
+            $fields,
+            self::getConnectionNameMethod($connection)
         ],
         $contents);
+    }
+
+    public static function getConnectionNameMethod($connection)
+    {
+        if (!$connection) {
+            return '';
+        }
+
+        return "
+        /**
+         * @return string
+         */
+        public static function getConnectionName()
+        {
+            return '$connection';
+        }
+
+        ";
     }
 
     public static function getFieldsAsString($primaryKey, array $fields)

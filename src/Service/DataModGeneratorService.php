@@ -29,7 +29,13 @@ class DataModGeneratorService
             }
 
             $fields = self::getFieldsAsString($table, $api);
-            $contents = TemplateService::replaceTemplateVars($table, $namespace, $templateFile, $fields);
+            $contents = TemplateService::replaceTemplateVars(
+                $table,
+                $namespace,
+                $templateFile,
+                $fields,
+                $connection
+            );
 
             file_put_contents(
                 $filename,

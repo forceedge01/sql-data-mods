@@ -62,9 +62,9 @@ class Generate implements Controller
      */
     public function execute(InputInterface $input, OutputInterface $output)
     {
-        if ($option = $input->getOption('dm-generate')) {
+        if ($tables = $input->getOption('dm-generate')) {
             self::generateTables(
-                $option,
+                explode(',', str_replace('', '', $tables)[0]),
                 $input->getOption('dm-path'),
                 $input->getOption('dm-namespace'),
                 $input->getOption('dm-connection')
@@ -74,8 +74,18 @@ class Generate implements Controller
 
     private static function generateTables(array $generate, $path, $namespace, $connection = null)
     {
-        DataModGeneratorService::confirmGenerate($generate, $path, $namespace, $connection);
-        DataModGeneratorService::generate($generate, $path, $namespace, $connection);
+        DataModGeneratorService::confirmGenerate(
+            $generate,
+            $path,
+            $namespace,
+            $connection
+        );
+        DataModGeneratorService::generate(
+            $generate,
+            $path,
+            $namespace,
+            $connection
+        );
         exit;
     }
 }

@@ -11,6 +11,7 @@ use Genesis\SQLExtensionWrapper\Exception\RequiredDataException;
 use Genesis\SQLExtension\Context;
 use Genesis\SQLExtension\Context\Exceptions\NoWhereClauseException;
 use Genesis\SQLExtension\Context\Interfaces;
+use Genesis\SQLExtension\Context\Interfaces\KeyStoreInterface;
 
 /**
 * This class serves as a Decorator for the Genesis API class.
@@ -36,6 +37,11 @@ abstract class BaseProvider implements APIDecoratorInterface
     private static $sqlApis;
 
     /**
+     * @var Interfaces\KeyStoreInterface
+     */
+    private static $keyStore;
+
+    /**
      * @return array
      */
     public static function setCredentials(array $connections)
@@ -45,13 +51,23 @@ abstract class BaseProvider implements APIDecoratorInterface
         }
     }
 
+    public static function setKeyStore($keyStoreClass)
+    {
+        if (in_array(KeyStoreInterface::class, class_implements($keyStoreClass))) {
+            self::$keyStore = $keyStoreClass;
+            return;
+        }
+
+        throw new Exception("$keyStoreClass must implement " . KeyStoreInterface::class);
+    }
 
     private static function instantiateApi(array $credentials)
     {
+        $keyStore = self::$keyStore;
         return new Context\API(
             new Context\DBManager(new Context\DatabaseProviders\Factory(), $credentials),
             new Context\SQLBuilder(),
-            new Context\LocalKeyStore()
+            new $keyStore()
         );
     }
 

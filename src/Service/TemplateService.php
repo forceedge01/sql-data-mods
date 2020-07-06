@@ -14,10 +14,10 @@ class TemplateService
     public static function replaceTemplateVars($table, $namespace, $contents, $fields = null)
     {
         return str_replace([
-            '{DATAMOD}',
-            '{TABLE}',
-            '{NAMESPACE}',
-            '{FIELDS}'
+            '{{DATAMOD}}',
+            '{{TABLE}}',
+            '{{NAMESPACE}}',
+            '{{FIELDS}}'
         ], [
             BaseProvider::getDataModForTable($table),
             $table,

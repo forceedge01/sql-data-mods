@@ -32,6 +32,18 @@ class Initializer implements ContextInitializer
     }
 
     /**
+     * @return array
+     */
+    public function getMappings()
+    {
+        return [
+            'dataMod' => $this->dataModMapping,
+            'domainMod' => $this->domainModMapping
+        ];
+
+    }
+
+    /**
      */
     public function initializeContext(Context $context)
     {

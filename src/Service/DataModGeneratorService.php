@@ -53,8 +53,18 @@ class DataModGeneratorService
 
     private static function getColumnsAsArray($table, $api)
     {
-        $primaryKey = $api->get('dbManager')->getPrimaryKeyForTable(null, null, $table);
-        $columns = $api->get('dbManager')->getTableColumns(null, null, $table);
+        $params = $api->get('dbManager')->getParams();
+
+        $primaryKey = $api->get('dbManager')->getPrimaryKeyForTable(
+            $params['DBNAME'],
+            $params['DBSCHEMA'],
+            $table
+        );
+        $columns = $api->get('dbManager')->getTableColumns(
+            $params['DBNAME'],
+            $params['DBSCHEMA'],
+            $table
+        );
 
         return [$primaryKey, $columns];
     }

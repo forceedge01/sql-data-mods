@@ -1,18 +1,18 @@
 <?php
 
-namespace DataMod;
+namespace {{NAMESPACE}};
 
 use Genesis\SQLExtensionWrapper\BaseProvider;
 use Genesis\SQLExtensionWrapper\Contract\DataModInterface;
 
-class {DATAMOD} extends BaseProvider implements DataModInterface
+class {{DATAMOD}} extends BaseProvider implements DataModInterface
 {
     /**
      * @return string
      */
     public static function getBaseTable()
     {
-        return '{TABLE}';
+        return '{{TABLE}}';
     }
 
     /**
@@ -21,7 +21,7 @@ class {DATAMOD} extends BaseProvider implements DataModInterface
     public static function getDataMapping()
     {
         return [
-{FIELDS}
+{{FIELDS}}
         ];
     }
 

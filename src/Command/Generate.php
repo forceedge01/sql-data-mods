@@ -3,6 +3,7 @@
 namespace Genesis\SQLExtensionWrapper\Command;
 
 use Behat\Testwork\Cli\Controller;
+use Genesis\SQLExtensionWrapper\Extension\Initializer\Initializer;
 use Genesis\SQLExtensionWrapper\Service\DataModGeneratorService;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 use Symfony\Component\Console\Input\InputInterface;
@@ -11,6 +12,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class Generate implements Controller
 {
+    public function __construct(Initializer $param)
+    {
+        $this->endpointMappings = $param->getMappings();
+    }
+
     /**
      * Configures command to be executable by the controller.
      *
@@ -36,7 +42,7 @@ class Generate implements Controller
             null,
             InputOption::VALUE_OPTIONAL,
             'The namespace to use. Must end with leading double backslash.',
-            '\\DataMod'
+            trim($this->endpointMappings['dataMod']['*'] ? $this->endpointMappings['dataMod']['*'] : 'DataMod', '\\')
         );
         $command->addOption(
             '--dm-connection',

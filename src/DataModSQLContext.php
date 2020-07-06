@@ -5,9 +5,9 @@ namespace Genesis\SQLExtensionWrapper;
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\TableNode;
 use Exception;
+use Genesis\SQLExtension\Context\Debugger;
 use Genesis\SQLExtensionWrapper\Exception\DataModNotFoundException;
 use Genesis\SQLExtensionWrapper\Exception\DomainModNotFoundException;
-use Genesis\SQLExtension\Context\Debugger;
 use UnexpectedValueException;
 
 /**
@@ -283,6 +283,16 @@ class DataModSQLContext implements Context
     }
 
     /**
+     * @Given I do not have the following fixtures:
+     */
+    public function doNotHaveTheFollowingFixtures(TableNode $dataMods)
+    {
+        foreach ($dataMods->getRowsHash() as $dataModRef => $unused) {
+            $this->iDoNotHaveAFixtureWithTheFollowingDataSet($dataModRef);
+        }
+    }
+
+    /**
      * @Given I do not have a/any :dataModRef fixture(s)
      * @Given I do not have a/any :dataModRef fixture(s) with the following data set:
      * @param mixed $dataModRef
@@ -321,6 +331,8 @@ class DataModSQLContext implements Context
      *
      * @Then I should have :expected :dataModRef count
      * @Then I should have :expected :dataModRef count with the following data set:
+     * @param mixed $expected
+     * @param mixed $dataModRef
      */
     public function iShouldHaveCountTheFollowingDataSet($expected, $dataModRef, TableNode $where = null)
     {

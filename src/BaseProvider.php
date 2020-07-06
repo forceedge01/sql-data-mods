@@ -3,15 +3,15 @@
 namespace Genesis\SQLExtensionWrapper;
 
 use Exception;
-use Genesis\SQLExtensionWrapper\Contract\APIDecoratorInterface;
-use Genesis\SQLExtensionWrapper\Contract\BridgeInterface;
-use Genesis\SQLExtensionWrapper\Contract\BridgedDataModInterface;
-use Genesis\SQLExtensionWrapper\Exception\DefaultValuesException;
-use Genesis\SQLExtensionWrapper\Exception\RequiredDataException;
 use Genesis\SQLExtension\Context;
 use Genesis\SQLExtension\Context\Exceptions\NoWhereClauseException;
 use Genesis\SQLExtension\Context\Interfaces;
 use Genesis\SQLExtension\Context\Interfaces\KeyStoreInterface;
+use Genesis\SQLExtensionWrapper\Contract\APIDecoratorInterface;
+use Genesis\SQLExtensionWrapper\Contract\BridgedDataModInterface;
+use Genesis\SQLExtensionWrapper\Contract\BridgeInterface;
+use Genesis\SQLExtensionWrapper\Exception\DefaultValuesException;
+use Genesis\SQLExtensionWrapper\Exception\RequiredDataException;
 
 /**
 * This class serves as a Decorator for the Genesis API class.
@@ -37,9 +37,9 @@ abstract class BaseProvider implements APIDecoratorInterface
     private static $sqlApis;
 
     /**
-     * @var Interfaces\KeyStoreInterface
+     * @var string
      */
-    private static $keyStore;
+    private static $keyStore = '\\Genesis\\SQLExtension\\Context\\LocalKeyStore';
 
     /**
      * @return array

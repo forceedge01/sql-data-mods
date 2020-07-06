@@ -3,9 +3,9 @@
 namespace Genesis\SQLExtensionWrapper\Tests;
 
 use Exception;
-use Genesis\SQLExtensionWrapper\BaseProvider;
 use Genesis\SQLExtension\Context\Interfaces\APIInterface;
 use Genesis\SQLExtension\Context\Interfaces\KeyStoreInterface;
+use Genesis\SQLExtensionWrapper\BaseProvider;
 use PHPUnit\Framework\Assert;
 use PHPUnit_Framework_TestCase;
 use ReflectionClass;

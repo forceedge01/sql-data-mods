@@ -35,6 +35,11 @@ class DataModSQLContext implements Context
     private static $userUniqueRef;
 
     /**
+     * @var boolean
+     */
+    private static $setFailStates = false;
+
+    /**
      * @param boolean $debug
      * @param string  $userUniqueRef Will be appended to new data created to separate data based on users.
      *                               Best to limit it to 2 characters.
@@ -57,6 +62,22 @@ class DataModSQLContext implements Context
     public function clearStore($beforeScenario)
     {
         BaseProvider::getApi()->get('keyStore')->reset();
+    }
+
+    /**
+     * @param bool $bool
+     */
+    public function setFailStates($bool)
+    {
+        self::$setFailStates = $bool;
+    }
+
+    /**
+     * @AfterStep
+     */
+    public function setFailureStatesOnFailure()
+    {
+        // Do stuff here.
     }
 
     /**

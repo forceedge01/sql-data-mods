@@ -454,8 +454,44 @@ The step definitions to support this feature are:
 ```yml
 Scenario: ...
     Given I have a "Ship" domain fixture
+    Given I have an additional "Ship" domain fixture
     Given I have a "Ship" domain fixture with the following data set:
     | name | ABC |
+```
+
+You can inject data mod defaults through domain mods which take precedence over data mod defaults but lower than the supplied data through the step definition:
+
+```php
+<?php
+
+namespace App\Tests\Behaviour\DomainMod;
+
+use App\Tests\Behaviour\DataMod;
+use Genesis\SQLExtensionWrapper\Contract\DomainModInterface;
+
+class User implements DomainModInterface
+{
+    public static function getInsertDefaults()
+    {
+        return [
+            DataMod\User::class => [
+                'age' => 31
+            ],
+            DataMod\UserExt::class => [
+                'name' => 'Jack'
+            ],
+        ];
+    }
+
+    public static function getDataMods()
+    {
+        return [
+            DataMod\User::class,
+            DataMod\UserExt::class,
+        ];
+    }
+}
+
 ```
 
 Build dynamic URLs

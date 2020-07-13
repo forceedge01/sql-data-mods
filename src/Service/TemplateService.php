@@ -36,15 +36,15 @@ class TemplateService
         }
 
         return "
-        /**
-         * @return string
-         */
-        public static function getConnectionName()
-        {
-            return '$connection';
-        }
+    /**
+     * @return string
+     */
+    public static function getConnectionName()
+    {
+        return '$connection';
+    }
 
-        ";
+";
     }
 
     public static function getFieldsAsString($primaryKey, array $fields)

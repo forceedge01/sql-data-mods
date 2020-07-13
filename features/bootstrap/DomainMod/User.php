@@ -9,6 +9,15 @@ use DataMod;
  */
 class User
 {
+    public static function getInsertDefaults()
+    {
+        return [
+            DataMod\User::class => [
+                'age' => 31
+            ]
+        ];
+    }
+
     public static function getDataMods()
     {
         return [

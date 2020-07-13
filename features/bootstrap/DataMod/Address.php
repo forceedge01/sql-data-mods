@@ -35,7 +35,7 @@ class Address extends BaseProvider implements DataModInterface
      *
      * @return array
      */
-    public static function getDefaults(array $data = [])
+    public static function getInsertDefaults(array $data = [])
     {
         return [
             'user_id' => User::getRequiredValue('id')

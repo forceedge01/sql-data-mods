@@ -1,4 +1,4 @@
-# SQL Data Mods [ ![Codeship Status for forceedge01/sql-api-wrapper](https://app.codeship.com/projects/96302210-ad45-0135-72c6-56f00403434d/status?branch=master)](https://app.codeship.com/projects/257181)
+# SQL Data Mods (Behat Extension) [ ![Codeship Status for forceedge01/sql-api-wrapper](https://app.codeship.com/projects/96302210-ad45-0135-72c6-56f00403434d/status?branch=master)](https://app.codeship.com/projects/257181)
 
 Need fixture data but seed causing headaches? Create fixture seed data on the fly, keep them visible in your scenarios, auto generate data and deal with complex data relationships. 
 
@@ -11,6 +11,7 @@ Major: Allow multiple data sources to be defined.
 Minor: 
 - Allow uniqueColumn to be specified from the step definition rather than assuming first column.
 - Get count through dataMod::count() call, truncate call now made public.
+- Inject domain mod based defaults through to data mods.
 - Fail aid integration if FailureContext is enabled for suite.
 
 Patch: NA.
@@ -462,8 +463,44 @@ The step definitions to support this feature are:
 ```yml
 Scenario: ...
     Given I have a "Ship" domain fixture
+    Given I have an additional "Ship" domain fixture
     Given I have a "Ship" domain fixture with the following data set:
     | name | ABC |
+```
+
+You can inject data mod defaults through domain mods which take precedence over data mod defaults but lower than the supplied data through the step definition:
+
+```php
+<?php
+
+namespace App\Tests\Behaviour\DomainMod;
+
+use App\Tests\Behaviour\DataMod;
+use Genesis\SQLExtensionWrapper\Contract\DomainModInterface;
+
+class User implements DomainModInterface
+{
+    public static function getInsertDefaults()
+    {
+        return [
+            DataMod\User::class => [
+                'age' => 31
+            ],
+            DataMod\UserExt::class => [
+                'name' => 'Jack'
+            ],
+        ];
+    }
+
+    public static function getDataMods()
+    {
+        return [
+            DataMod\User::class,
+            DataMod\UserExt::class,
+        ];
+    }
+}
+
 ```
 
 Build dynamic URLs

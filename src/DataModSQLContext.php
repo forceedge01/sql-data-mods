@@ -8,7 +8,9 @@ use Behat\Gherkin\Node\TableNode;
 use Exception;
 use FailAid\Context\FailureContext;
 use Genesis\SQLExtensionWrapper\Exception\DataModNotFoundException;
+use Genesis\SQLExtensionWrapper\Exception\DomainModException;
 use Genesis\SQLExtensionWrapper\Exception\DomainModNotFoundException;
+use Genesis\SQLExtensionWrapper\Service\DomainModHelper;
 use Genesis\SQLExtension\Context\Debugger;
 use UnexpectedValueException;
 
@@ -136,6 +138,7 @@ class DataModSQLContext implements Context
 
             $mapping = BaseProvider::resolveAliasing($dataMod::getDataMapping());
             $modData = array_intersect_key($data, $mapping);
+            $modData = DomainModHelper::injectDefaultDomainModData($domainMod, $dataMod, $modData);
             list($uniqueKey, $dataSet) = $this->getUniqueKeyFromDataset($modData);
 
             try {
@@ -144,7 +147,7 @@ class DataModSQLContext implements Context
                     $uniqueKey
                 );
             } catch (\Exception $e) {
-                throw new Exception\DomainModException($domainModRef, $dataMod, $e->getMessage());
+                throw new DomainModException($domainModRef, $dataMod, $e->getMessage());
             }
         }
     }
@@ -173,6 +176,7 @@ class DataModSQLContext implements Context
 
             $mapping = BaseProvider::resolveAliasing($dataMod::getDataMapping());
             $modData = array_intersect_key($data, $mapping);
+            $modData = DomainModHelper::injectDefaultDomainModData($domainMod, $dataMod, $modData);
             list($uniqueKey, $dataSet) = $this->getUniqueKeyFromDataset($modData);
 
             try {
@@ -180,7 +184,7 @@ class DataModSQLContext implements Context
                     $dataSet
                 );
             } catch (\Exception $e) {
-                throw new Exception\DomainModException($domainModRef, $dataMod, $e->getMessage());
+                throw new DomainModException($domainModRef, $dataMod, $e->getMessage());
             }
         }
     }

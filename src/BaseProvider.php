@@ -199,6 +199,15 @@ abstract class BaseProvider implements APIDecoratorInterface
         return [];
     }
 
+    public static function setInsertDefaults(array $data)
+    {
+        if (!property_exists(static::class, 'insertDefaults')) {
+            throw new Exception('Expected to have insertDefaults declared on ' . static::class);
+        }
+
+        static::$insertDefaults = $data;
+    }
+
     /**
      *
      * @return array
@@ -731,6 +740,11 @@ abstract class BaseProvider implements APIDecoratorInterface
         static::getAPI(static::getConnectionName())->delete($table, [
             'id' => '!NULL'
         ]);
+    }
+
+    public static function setData($data, $value)
+    {
+        $this->presetInsertData[$data] = $value;
     }
 
     /**

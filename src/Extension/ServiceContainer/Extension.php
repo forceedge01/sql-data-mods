@@ -70,6 +70,7 @@ class Extension implements ExtensionInterface
                         ->arrayNode('output')
                             ->addDefaultsIfNotSet()
                             ->children()
+                                ->scalarNode('enabled')->defaultValue(true)->end()
                                 ->scalarNode('insert')->defaultValue(true)->end()
                                 ->scalarNode('select')->defaultValue(true)->end()
                                 ->scalarNode('update')->defaultValue(true)->end()

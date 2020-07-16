@@ -53,7 +53,10 @@ class Initializer implements ContextInitializer
     public function initializeContext(Context $context)
     {
         if (is_a($context, 'FailAid\\Context\\FailureContext')) {
-            DataModSQLContext::setFailStates(true, $this->failAidOptions['output']);
+            DataModSQLContext::setFailStates(
+                $this->failAidOptions['output']['enabled'],
+                $this->failAidOptions['output']
+            );
         }
 
         if ($context instanceof DataModSQLContext) {

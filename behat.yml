@@ -21,9 +21,13 @@ default:
       port : 8111            # defaults to '8000'
       docroot: app     # defaults to '%paths.base%/web'
     Genesis\SQLExtensionWrapper\Extension:
-      # FailAid:
-      #   output:
-      #     select: false
+      FailAid:
+        output:
+          enabled: true
+          select: true
+          insert: true
+          update: true
+          delete: true
       connection: # Check compatibility with connections setting.
           engine: sqlite
           dbname: app/db/datbaase2.db

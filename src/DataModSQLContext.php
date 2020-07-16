@@ -3,11 +3,13 @@
 namespace Genesis\SQLExtensionWrapper;
 
 use Behat\Behat\Context\Context;
+use Behat\Behat\Hook\Scope\AfterStepScope;
 use Behat\Gherkin\Node\TableNode;
 use Exception;
-use Genesis\SQLExtension\Context\Debugger;
+use FailAid\Context\FailureContext;
 use Genesis\SQLExtensionWrapper\Exception\DataModNotFoundException;
 use Genesis\SQLExtensionWrapper\Exception\DomainModNotFoundException;
+use Genesis\SQLExtension\Context\Debugger;
 use UnexpectedValueException;
 
 /**
@@ -35,9 +37,19 @@ class DataModSQLContext implements Context
     private static $userUniqueRef;
 
     /**
-     * @var boolean
+     * @var bool
      */
-    private static $setFailStates = false;
+    private static $setFailStates;
+
+    /**
+     * @var array
+     */
+    private static $failStates = [];
+
+    /**
+     * @var array
+     */
+    private $queries = [];
 
     /**
      * @param boolean $debug
@@ -65,19 +77,38 @@ class DataModSQLContext implements Context
     }
 
     /**
-     * @param bool $bool
+     * @param array $states
      */
-    public function setFailStates($bool)
+    public function setFailStates($bool, array $states)
     {
         self::$setFailStates = $bool;
+        self::$failStates = $states;
     }
 
     /**
      * @AfterStep
      */
-    public function setFailureStatesOnFailure()
+    public function setFailureStatesOnFailure(AfterStepScope $scope)
     {
-        // Do stuff here.
+        if (self::$setFailStates) {
+            foreach (BaseProvider::getApis() as $api) {
+                if ($lastQueries = $api->getLastQueries()) {
+                    foreach ($lastQueries as $queryType => $query) {
+                        if (self::$failStates[$queryType] !== true) {
+                            continue;
+                        }
+                        
+                        if (!isset($this->queries[$queryType]) || !in_array($query, $this->queries[$queryType])) {
+                            $this->queries[$queryType][] = $query;
+                        }
+                    }
+                }
+            }
+
+            foreach ($this->queries as $queryType => $queries) {
+                FailureContext::addState($queryType . ' queries', PHP_EOL . implode(PHP_EOL, $queries) . PHP_EOL);
+            }
+        }
     }
 
     /**

@@ -81,7 +81,7 @@ class DataModSQLContext implements Context
     /**
      * @param array $states
      */
-    public function setFailStates($bool, array $states)
+    public static function setFailStates($bool, array $states)
     {
         self::$setFailStates = $bool;
         self::$failStates = $states;

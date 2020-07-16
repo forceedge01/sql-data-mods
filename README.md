@@ -12,6 +12,7 @@ Minor:
 - Allow uniqueColumn to be specified from the step definition rather than assuming first column.
 - Get count through dataMod::count() call, truncate call now made public.
 - Inject domain mod based defaults through to data mods.
+- Fail aid integration if FailureContext is enabled for suite.
 
 Patch: NA.
 
@@ -110,6 +111,13 @@ default:
             domainModMapping: # Optional
                 "*": \QuickPack\DomainMod\
                 "User": \QuickPack\DomainMod\User\User
+            FailAid: # If behat-fail-aid is enabled.
+                output:
+                  enabled: true
+                  select: true
+                  insert: true
+                  update: true
+                  delete: true
 ```
 
 debug - Turns debugging on off.

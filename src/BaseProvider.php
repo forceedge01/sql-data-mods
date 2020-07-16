@@ -34,7 +34,7 @@ abstract class BaseProvider implements APIDecoratorInterface
     /**
      * @var Interfaces\APIInterface[]
      */
-    private static $sqlApis;
+    private static $sqlApis = [];
 
     /**
      * @var string
@@ -110,6 +110,14 @@ abstract class BaseProvider implements APIDecoratorInterface
         }
 
         return self::$sqlApis[$connection];
+    }
+
+    /**
+     * @return array
+     */
+    public static function getApis()
+    {
+        return self::$sqlApis;
     }
 
     /**

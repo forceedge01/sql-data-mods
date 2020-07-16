@@ -22,13 +22,19 @@ class Initializer implements ContextInitializer
     private $domainModMapping = [];
 
     /**
+     * @var array
      */
+    private $failAidOptions = [];
+
+
     public function __construct(
         array $dataModMapping = [],
-        array $domainModMapping = []
+        array $domainModMapping = [],
+        array $failAidOptions = []
     ) {
         $this->dataModMapping = $dataModMapping;
         $this->domainModMapping = $domainModMapping;
+        $this->failAidOptions = $failAidOptions;
     }
 
     /**
@@ -43,10 +49,16 @@ class Initializer implements ContextInitializer
 
     }
 
-    /**
-     */
+
     public function initializeContext(Context $context)
     {
+        if (is_a($context, 'FailAid\\Context\\FailureContext')) {
+            DataModSQLContext::setFailStates(
+                $this->failAidOptions['output']['enabled'],
+                $this->failAidOptions['output']
+            );
+        }
+
         if ($context instanceof DataModSQLContext) {
             $context::setDataModMapping($this->dataModMapping);
             $context::setDomainModMapping($this->domainModMapping);

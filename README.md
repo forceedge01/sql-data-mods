@@ -13,6 +13,7 @@ Minor:
 - Get count through dataMod::count() call, truncate call now made public.
 - Inject domain mod based defaults through to data mods.
 - Fail aid integration if FailureContext is enabled for suite.
+- Constants for confusing string values used around data mods.
 
 Patch: NA.
 
@@ -205,6 +206,7 @@ Creating a DataMod to use in your context files. This is as easy as just extendi
 
 namespace QuickPack\DataMod\User;
 
+use Genesis\SQLExtensionWrapper\Contract\DataModInterface;
 use Genesis\SQLExtensionWrapper\BaseProvider;
 
 class User extends BaseProvider
@@ -237,8 +239,8 @@ class User extends BaseProvider
             'dateOfBirth' => 'd_o_b',
             'gender' => 'gender',
             'status' => 'real_status',
-            'anythingElse' => '*',
-            'somethingElse' => '*',
+            'anythingElse' => DataModInterface::NOT_MAPPED,
+            'somethingElse' => DataModInterface::NOT_MAPPED,
         ];
     }
 }

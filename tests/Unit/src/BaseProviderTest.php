@@ -141,7 +141,7 @@ class BaseProviderTest extends PHPUnit_Framework_TestCase
     {
         $result = $this->getPrivatePropertyValue('sqlApis');
 
-        self::assertNull($result);
+        self::assertSame([], $result);
 
         // Prepare / Mock
         $credentials = [

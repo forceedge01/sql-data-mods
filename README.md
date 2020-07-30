@@ -1,4 +1,4 @@
-# SQL Data Mods [ ![Codeship Status for forceedge01/sql-api-wrapper](https://app.codeship.com/projects/96302210-ad45-0135-72c6-56f00403434d/status?branch=master)](https://app.codeship.com/projects/257181)
+# SQL Data Mods (Behat Extension) [ ![Codeship Status for forceedge01/sql-api-wrapper](https://app.codeship.com/projects/96302210-ad45-0135-72c6-56f00403434d/status?branch=master)](https://app.codeship.com/projects/257181)
 
 Need fixture data but seed causing headaches? Create fixture seed data on the fly, keep them visible in your scenarios, auto generate data and deal with complex data relationships. 
 
@@ -12,6 +12,7 @@ Minor:
 - Allow uniqueColumn to be specified from the step definition rather than assuming first column.
 - Get count through dataMod::count() call, truncate call now made public.
 - Inject domain mod based defaults through to data mods.
+- Fail aid integration if FailureContext is enabled for suite.
 
 Patch: NA.
 
@@ -110,6 +111,13 @@ default:
             domainModMapping: # Optional
                 "*": \QuickPack\DomainMod\
                 "User": \QuickPack\DomainMod\User\User
+            FailAid: # If behat-fail-aid is enabled.
+                output:
+                  enabled: true
+                  select: true
+                  insert: true
+                  update: true
+                  delete: true
 ```
 
 debug - Turns debugging on off.

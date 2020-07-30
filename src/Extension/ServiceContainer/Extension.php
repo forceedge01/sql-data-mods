@@ -64,6 +64,21 @@ class Extension implements ExtensionInterface
     {
         $builder
             ->children()
+                ->arrayNode('FailAid')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('output')
+                            ->addDefaultsIfNotSet()
+                            ->children()
+                                ->scalarNode('enabled')->defaultValue(true)->end()
+                                ->scalarNode('insert')->defaultValue(true)->end()
+                                ->scalarNode('select')->defaultValue(true)->end()
+                                ->scalarNode('update')->defaultValue(true)->end()
+                                ->scalarNode('delete')->defaultValue(true)->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
                 ->scalarNode('keyStore')->defaultValue('\Genesis\SQLExtension\Context\LocalKeyStore')->end()
                 ->arrayNode('connection')
                     ->setDeprecated('Use "connections" configuration instead.')
@@ -132,10 +147,12 @@ class Extension implements ExtensionInterface
             $config['domainModMapping'] = [];
         }
         $container->setParameter('genesis.sqlapiwrapper.config.domainmodmapping', $config['domainModMapping']);
+        $container->setParameter('genesis.sqlapiwrapper.config.failAidOptions', $config['FailAid']);
 
         $definition = new Definition(Initializer::class, [
             '%genesis.sqlapiwrapper.config.datamodmapping%',
             '%genesis.sqlapiwrapper.config.domainmodmapping%',
+            '%genesis.sqlapiwrapper.config.failAidOptions%'
         ]);
         $definition->addTag(ContextExtension::INITIALIZER_TAG);
         $container->setDefinition(self::CONTEXT_INITIALISER, $definition);

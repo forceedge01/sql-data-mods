@@ -230,8 +230,9 @@ class DataModSQLContext implements Context
      */
     public function givenIHaveXFixtures(int $count, string $dataModRef, TableNode $where = null)
     {
+        $this->givenIACreateFixture($dataModRef, null, $where);
         for ($i = 0; $i < $count; $i++) {
-            $this->givenIACreateFixture($dataModRef, $where);
+            $this->givenIHaveAdditionalACreateFixture($dataModRef, $where);
         }
     }
 

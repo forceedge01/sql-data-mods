@@ -155,6 +155,7 @@ class DataModSQLContext implements Context
     /**
      * @Given I have additional :domainModRef domain fixture with the following data set:
      * @Given I have additional :domainModRef domain fixture
+     * @Given I have an additional :domainModRef domain fixture
      *
      * @return string
      * @param  mixed  $domainModRef
@@ -217,6 +218,7 @@ class DataModSQLContext implements Context
     }
 
     /**
+     * @Given I have an additional :dataModRef fixture
      * @Given I have additional :dataModRef fixture
      * @Given I have additional :dataModRef fixture with the following data set:
      *
@@ -283,7 +285,7 @@ class DataModSQLContext implements Context
     public function givenIHaveXFixtures(int $count, string $dataModRef, TableNode $where = null)
     {
         $this->givenIACreateFixture($dataModRef, null, $where);
-        for ($i = 0; $i < $count; $i++) {
+        for ($i = 0; $i < ($count-1); $i++) {
             $this->givenIHaveAdditionalACreateFixture($dataModRef, $where);
         }
     }

@@ -15,7 +15,9 @@ Minor:
 - Fail aid integration if FailureContext is enabled for suite.
 - Constants for confusing string values used around data mods.
 
-Patch: NA.
+Patch:
+- Fix count step defintion to not create additional record.
+- Revised english for additional fixture step defintion.
 
 Tools provided by this package:
 --------------------------------

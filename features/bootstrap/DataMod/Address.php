@@ -2,33 +2,40 @@
 
 namespace DataMod;
 
+use Genesis\DataMods\Traits\SimplifiedDeclarations;
+use Genesis\DataMods\Traits\SimplifiedDefaults;
 use Genesis\SQLExtensionWrapper\BaseProvider;
 use Genesis\SQLExtensionWrapper\Contract\DataModInterface;
 
 /**
- * Address class.
+ * Address class. This class implements the simplified traits that shorten the syntax and may be more compatible looking 
+ * with frameworks such as laravel.
  */
 class Address extends BaseProvider implements DataModInterface
 {
-    /**
-     * @return string
-     */
-    public static function getBaseTable()
-    {
-        return 'Address';
-    }
+    use SimplifiedDeclarations;
+    use SimplifiedDefaults;
 
     /**
-     * @return array
+     * Get the base table name.
      */
-    public static function getDataMapping()
-    {
-        return [
-            'id' => 'id',
-            'user_id' => 'user_id',
-            'address' => 'address',
-        ];
-    }
+    private static $baseTable = 'Address';
+
+    /**
+     * Get data mapping of the table.
+     */
+    private static $dataMapping = [
+        'id' => 'id',
+        'user_id' => 'user_id',
+        'address' => 'address',
+    ];
+
+    /**
+     * Get delete defaults.
+     */
+    private static $deleteDefaults = [
+        'id' => DataModInterface::NOT_NULL
+    ];
 
     /**
      * @param array $data
@@ -40,21 +47,5 @@ class Address extends BaseProvider implements DataModInterface
         return [
             'user_id' => User::getRequiredValue('id')
         ];
-    }
-
-    /**
-     * @param array $where
-     *
-     * @return void
-     */
-    public static function delete(array $where = [])
-    {
-        if (! $where) {
-            $where = [
-                'id' => '!NULL'
-            ];
-        }
-
-        parent::delete($where);
     }
 }

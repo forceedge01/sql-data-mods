@@ -14,6 +14,7 @@ Minor:
 - Inject domain mod based defaults through to data mods.
 - Fail aid integration if FailureContext is enabled for suite.
 - Constants for confusing string values used around data mods.
+- Simplified traits to provide alternate syntax of declarations.
 
 Patch:
 - Fix count step defintion to not create additional record.
@@ -208,21 +209,19 @@ Creating a DataMod to use in your context files. This is as easy as just extendi
 
 namespace QuickPack\DataMod\User;
 
+use Genesis\DataMods\Traits\SimplifiedDeclarations;
 use Genesis\SQLExtensionWrapper\Contract\DataModInterface;
 use Genesis\SQLExtensionWrapper\BaseProvider;
 
 class User extends BaseProvider
 {
+    // Provides an alternate syntax for declarations.
+    use SimplifiedDeclarations;
+
     /**
      * Returns the base table to interact with.
-     *
-     * @return string
      */
-    public static function getBaseTable()
-    {
-        // Ridiculous naming as we find with most databases.
-        return 'MySuperApplication.MyUsersNew';
-    }
+    private static $baseTable = 'MySuperApplication.MyUsersNew';
 
     /**
      * Returns the data mapping for the base table. This is the data that is allowed to be passed in
@@ -232,19 +231,16 @@ class User extends BaseProvider
      *
      * @return array
      */
-    public static function getDataMapping()
-    {
-        return [
-            'id' => 'user_id',
-            'name' => 'f_name',
-            'email' => 'electronic_address',
-            'dateOfBirth' => 'd_o_b',
-            'gender' => 'gender',
-            'status' => 'real_status',
-            'anythingElse' => DataModInterface::NOT_MAPPED,
-            'somethingElse' => DataModInterface::NOT_MAPPED,
-        ];
-    }
+    private static $dataMapping = [
+        'id' => 'user_id',
+        'name' => 'f_name',
+        'email' => 'electronic_address',
+        'dateOfBirth' => 'd_o_b',
+        'gender' => 'gender',
+        'status' => 'real_status',
+        'anythingElse' => DataModInterface::NOT_MAPPED,
+        'somethingElse' => DataModInterface::NOT_MAPPED,
+    ];
 }
 
 ```

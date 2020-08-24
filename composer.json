@@ -24,6 +24,7 @@
     },
     "autoload": {
         "psr-4": {
+            "Genesis\\DataMods\\": "src/",
             "Genesis\\SQLExtensionWrapper\\": "src/",
             "Genesis\\SQLExtensionWrapper\\Tests\\": "tests/",
             "DataMod\\": "features/bootstrap/DataMod/"

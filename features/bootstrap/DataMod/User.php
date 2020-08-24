@@ -6,7 +6,7 @@ use Genesis\SQLExtensionWrapper\BaseProvider;
 use Genesis\SQLExtensionWrapper\Contract\DataModInterface;
 
 /**
- * User class.
+ * User class. Does not use simplified traits i.e full syntax declarations yields the same result.
  */
 class User extends BaseProvider implements DataModInterface
 {
